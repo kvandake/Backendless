@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backendless.Core", "Backendless.Core\Backendless.Core.csproj", "{CD00C38E-C02D-4921-A566-A171A49B78AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backendless.iOS", "Backendless.iOS\Backendless.iOS.csproj", "{1B8BE8E2-B29F-4E59-B47B-C9D158A1CC95}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B8BE8E2-B29F-4E59-B47B-C9D158A1CC95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B8BE8E2-B29F-4E59-B47B-C9D158A1CC95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B8BE8E2-B29F-4E59-B47B-C9D158A1CC95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B8BE8E2-B29F-4E59-B47B-C9D158A1CC95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD00C38E-C02D-4921-A566-A171A49B78AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD00C38E-C02D-4921-A566-A171A49B78AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD00C38E-C02D-4921-A566-A171A49B78AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD00C38E-C02D-4921-A566-A171A49B78AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
