@@ -2,9 +2,9 @@
 using Backendless.Core;
 using System.Collections.Generic;
 
-namespace Backendless.iOS
+namespace Backendless.Core.Test
 {
-	public class TouchBackendlessBootstrap : BackendlessBootstrap
+	public class TestBackendlessBootstrap : BackendlessBootstrap
 	{
 
 		IDictionary<Type,Type> endpoints;
@@ -15,6 +15,7 @@ namespace Backendless.iOS
 				if (services == null) {
 					services = new Dictionary<Type,object> ();
 					services [typeof(IUserService)] = new SimpleUserService ();
+					services [typeof(IBackendlessJsonProvider)] = new SimpleBackendlessJsonProvider ();
 				}
 				return services;
 			}
@@ -33,7 +34,7 @@ namespace Backendless.iOS
 
 
 		public static void Init(string applicationId, string secretKey, string apiVersion,string baseUrl = null, IConfigBackendless config = null){
-			var bootstrap = new TouchBackendlessBootstrap (applicationId, secretKey,apiVersion,baseUrl);
+			var bootstrap = new TestBackendlessBootstrap (applicationId, secretKey,apiVersion,baseUrl);
 			Init (bootstrap,config);
 		}
 
@@ -45,7 +46,7 @@ namespace Backendless.iOS
 
 
 
-		internal TouchBackendlessBootstrap (string applicationId, string secretKey, string apiVersion,string baseUrl = null):base(applicationId,secretKey,apiVersion,baseUrl)
+		internal TestBackendlessBootstrap (string applicationId, string secretKey, string apiVersion,string baseUrl = null):base(applicationId,secretKey,apiVersion,baseUrl)
 		{
 		}
 	}

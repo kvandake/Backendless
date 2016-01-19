@@ -2,9 +2,8 @@
 
 namespace Backendless.Core
 {
-	public class AccessControlLevel : BackendlessObject
+	public interface IBackendlessLocalEndPoint
 	{
-
 	}
 }
 
