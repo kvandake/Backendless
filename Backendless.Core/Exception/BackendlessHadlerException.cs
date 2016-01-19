@@ -19,7 +19,7 @@ namespace Backendless.Core
 
 
 
-		internal static void SendException(Exception ex, Action<BackendlessError> errorCalback){
+		internal static void SendException(Exception ex, ErrorBackendlessCallback errorCalback = null){
 			var backendlessException = ex as BackendlessException;
 			int errorCode = 0;
 			string errorMessage = ex.Message;

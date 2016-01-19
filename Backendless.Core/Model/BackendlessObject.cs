@@ -49,8 +49,14 @@ namespace Backendless.Core
 		/// </summary>
 		/// <returns><c>true</c>, if key was containsed, <c>false</c> otherwise.</returns>
 		/// <param name="key">Key.</param>
-		public bool ContainsKey(string key){
+		public bool ContainsProperty(string key){
 			return Items.ContainsKey (key);
+		}
+
+		public void RemoveProperty(string key){
+			if (ContainsProperty (key)) {
+				Items.Remove (key);
+			}
 		}
 
 		protected BackendlessObject(){

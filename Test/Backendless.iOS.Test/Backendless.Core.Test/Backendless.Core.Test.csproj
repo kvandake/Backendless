@@ -48,6 +48,7 @@
     <Compile Include="Simple\SimpleBackendlessRestEndPoint.cs" />
     <Compile Include="Simple\SimpleConfigBackendless.cs" />
     <Compile Include="Test\ITestInteerface.cs" />
+    <Compile Include="Custom\CustomBackendlessUser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

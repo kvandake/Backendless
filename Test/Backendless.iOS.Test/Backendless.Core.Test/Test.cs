@@ -30,18 +30,14 @@ namespace Backendless.Core.Test
 
 
 
-		[Test]
+		//[Test]
 		public async void TestLoginCase ()
 		{
 			try {
-				var result = await BackendlessBootstrap.FromContext<IUserService> ().LoginAsync ("test@test.ru", "testtest", new BackendlessCallback<BackendlessUser> (
-					             user => {
-						int h =0;
-					},
-					             error => {
-						int g = 0;
-					}));
-				int hs = 0;
+				var result = await BackendlessUser.LoginAsync<CustomBackendlessUser>("test@test.ru", "testtest", error=>{
+					Console.WriteLine (error.Message);
+				});
+				int f =0;
 			} catch (Exception ex) {
 				Console.WriteLine (ex);
 				throw ex;
@@ -51,20 +47,53 @@ namespace Backendless.Core.Test
 		//[Test ()]
 		public async void TestRegistrCase ()
 		{
-			//user.Email = ""
-//			try {
-//				var result = await BackendlessBootstrap.FromContext<IUserService> ().SignUpAsync ("test1@test.ru", "testtest", new BackendlessCallback<BackendlessUser> (
-//					user => {
-//						int h =0;
-//					},
-//					error => {
-//						int g = 0;
-//					}));
-//				int hs = 0;
-//			} catch (Exception ex) {
-//				Console.WriteLine (ex);
-//				throw ex;
-//			}
+			var user = new CustomBackendlessUser ();
+			user.Email = "test@test.ru";
+			user.Username  = "test";
+			user.AvatarSource = "fdfdf";
+			try {
+				var result = await user.SignUpAsync ("testtest", error=>{
+					Console.WriteLine (error.Message);
+				});
+				int hs = 0;
+			} catch (Exception ex) {
+				Console.WriteLine (ex);
+				throw ex;
+			}
+		}
+
+		//[Test]
+		public async void TestUpdateCase(){
+			var result = await BackendlessUser.LoginAsync<CustomBackendlessUser>("test@test.ru", "testtest", error=>{
+				Console.WriteLine (error.Message);
+			});
+			result.AvatarSource = "change avatar";
+			await result.UpdateAsync (error => {
+				Console.WriteLine (error.Message);
+			});
+			int g = 0;
+		}
+
+		//[Test]
+		public async void TestLogoutCase(){
+			var result = await BackendlessUser.LoginAsync<CustomBackendlessUser>("test@test.ru", "testtest", error=>{
+				Console.WriteLine (error.Message);
+			});
+			await result.LogoutAsync (error => {
+				Console.WriteLine (error.Message);
+			});
+			int g = 0;
+		}
+
+		[Test]
+		public async void TestRestorePasswordCase(){
+			var result = await BackendlessUser.LoginAsync<CustomBackendlessUser>("test@test.ru", "testtest", error=>{
+				Console.WriteLine (error.Message);
+			});
+			var res = await BackendlessUser.PasswordResetAsync (result.Email,error=>{
+				Console.WriteLine (error.Message);
+			});
+			int g = 0;
 		}
 	}
 }

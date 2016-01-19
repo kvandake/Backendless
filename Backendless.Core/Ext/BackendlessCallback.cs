@@ -4,10 +4,10 @@ namespace Backendless.Core
 {
 	public class BackendlessCallback<T>
 	{
-		internal readonly Action<BackendlessError> ErrorHandler;
+		internal readonly ErrorBackendlessCallback ErrorHandler;
 		internal readonly Action<T> ResponseHandler;
 
-		public BackendlessCallback( Action<T> responseHandler, Action<BackendlessError> errorHandler )
+		public BackendlessCallback( Action<T> responseHandler, ErrorBackendlessCallback errorHandler )
 		{
 			ResponseHandler = responseHandler;
 			ErrorHandler = errorHandler;

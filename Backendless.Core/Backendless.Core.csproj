@@ -43,7 +43,6 @@
     <Compile Include="Interfaces\IBackendlessLocalEndPoint.cs" />
     <Compile Include="Interfaces\IBackendlessRestEndPoint.cs" />
     <Compile Include="Simple\SimpleUserService.cs" />
-    <Compile Include="Attr\BackendlessField.cs" />
     <Compile Include="Exception\BackendlessError.cs" />
     <Compile Include="Ext\BackendlessCallback.cs" />
     <Compile Include="Interfaces\IBackendlessJsonProvider.cs" />
@@ -52,6 +51,10 @@
     <Compile Include="Model\ResponseObjectGeneric.cs" />
     <Compile Include="Model\ResponseObject.cs" />
     <Compile Include="Converters\UnixDateTimeConverter.cs" />
+    <Compile Include="Attr\PublicAPI.cs" />
+    <Compile Include="Model\BackendlessEntity.cs" />
+    <Compile Include="Interfaces\IPersistenceService.cs" />
+    <Compile Include="Simple\SimplePersistenceService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>
@@ -66,6 +69,7 @@
     <Folder Include="Attr\" />
     <Folder Include="Custom\" />
     <Folder Include="Converters\" />
+    <Folder Include="Callback\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Polly">

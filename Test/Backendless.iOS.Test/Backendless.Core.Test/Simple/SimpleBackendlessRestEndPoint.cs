@@ -45,14 +45,14 @@ namespace Backendless.Core.Test
 		public async Task<ResponseObject> GetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.GetAsync (ToQueryParameters (Parameters),cancellationToken);
+			var response = await base.GetAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters),cancellationToken);
 			return await ReadResponse(response);
 		}
 
 		public async Task<ResponseObject> PutAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.PutAsync (ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
+			var response = await base.PutAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
 			return await ReadResponse(response);
 		}
 
@@ -116,7 +116,15 @@ namespace Backendless.Core.Test
 
 		public IDictionary<string, string> Header {get;set;}
 
-		public IDictionary<string, string> Parameters {get;set;}
+		IDictionary<string, string> parameters;
+		public IDictionary<string, string> Parameters {
+			get {
+				return parameters ?? (parameters = new Dictionary<string,string> ());
+			}
+			set {
+				parameters = value;
+			}
+		}
 
 		#endregion
 

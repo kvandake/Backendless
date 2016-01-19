@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Linq;
 
 namespace Backendless.Core
 {
@@ -12,84 +13,170 @@ namespace Backendless.Core
 
 		const string RegisterMethodPath = "/users/register";
 		const string LoginMethodPath = "/users/login";
-
+		const string LogoutMethodPath = "/users/logout";
+		const string UpdateMethodPath = "/users";
+		const string RestorePassword = "/users/restorepassword";
 
 		static IBackendlessRestEndPoint RestPoint{
 			get{
-				return BackendlessBootstrap.Locator.CreatorEndPoint<IBackendlessRestEndPoint> ();
-			}
-		}
-
-		static IBackendlessJsonProvider JsonProvider {
-			get{
-				return BackendlessBootstrap.Locator.FromContextInternal<IBackendlessJsonProvider> ();
+				var rest =  BackendlessBootstrap.Locator.CreatorEndPoint<IBackendlessRestEndPoint> ();
+				rest.BaseAddress = BackendlessBootstrap.RootUrl;
+				rest.Header = BackendlessBootstrap.DefaultHeader;
+				return rest;
 			}
 		}
 
 		#region IUserService implementation
 
-		public async Task<bool> SignUpAsync (BackendlessUser user,BackendlessCallback<BackendlessUser> callback = null)
-		{
-//			try {
-//				using (var restPoint = RestPoint) {
-//					restPoint.BaseAddress = BackendlessBootstrap.RootUrl;
-//					restPoint.Header = BackendlessBootstrap.DefaultHeader;
-//					restPoint.Method = RegisterMethodPath;
-//					var json = 
-//					var response = await restPoint.PostAsync(user);
-//					if (response.StatusCode != HttpStatusCode.OK) {
-//						throw new BackendlessException (response.ErrorCode, response.ErrorMessage);
-//					}
-//					user = BackendlessObject.ParseParameters <BackendlessUser> (response.Data, BackendlessUser.ParseProvider);
-//					BackendlessCallback<BackendlessUser>.InvokeComplete (callback, user);
-//					return true;
-//				}
-//			} catch (Exception ex) {
-//				BackendlessHadlerException.SendException (ex, callback.ErrorHandler);
-//				return false;
-//			}
-			return false;
-		}
 
-
-		public async Task<T> LoginAsync<T>(string @username, string @password,BackendlessCallback<T> callback = null) where T: BackendlessUser
+		public async Task<bool> SignUpAsync (BackendlessUser user,string @password, ErrorBackendlessCallback errorCallback = null)
 		{
 			try {
 				using (var restPoint = RestPoint) {
 					restPoint.BaseAddress = BackendlessBootstrap.RootUrl;
 					restPoint.Header = BackendlessBootstrap.DefaultHeader;
+					restPoint.Method = RegisterMethodPath;
+					user ["password"] = @password;
+					var ignoreProperties = new [] { 
+						BackendlessObject.ObjectIdKey,
+						BackendlessObject.OwnerIdKey,
+						BackendlessObject.UpdatedKey,
+						BackendlessObject.MetaKey,
+						BackendlessObject.CreatedKey,
+						BackendlessUser.LastLoginKey,
+						BackendlessUser.UserTokenKey
+					};
+					var json = JsonConvert.SerializeObject (user, new JsonSerializerSettings {
+						ContractResolver = new RegistrationContractResolver (ignoreProperties),
+						NullValueHandling = NullValueHandling.Ignore
+					});
+					var response = await restPoint.PostAsync (json);
+					CheckResponse(response);
+					user.RemoveProperty ("password");
+					JsonConvert.PopulateObject (response.Json, user);
+					return true;
+				}
+			} catch (Exception ex) {
+				BackendlessHadlerException.SendException (ex, errorCallback);
+				return false;
+			}
+		}
+
+
+
+		public async Task<T> LoginAsync<T>(string @username, string @password,ErrorBackendlessCallback errorCallback = null) where T: BackendlessUser
+		{
+			try {
+				using (var restPoint = RestPoint) {
 					restPoint.Method = LoginMethodPath;
-					var dyn = new { login = @username, password = @password};
-					var json = JsonProvider.WriteObjectToJson(dyn);
-					var response = await restPoint.PostAsync(json);
-					if (response.StatusCode != HttpStatusCode.OK) {
-						BackendlessError error = null;
-						if(BackendlessError.TryParse (response.Json, ref error)){
-							throw new BackendlessException(error.ErrorCode,error.Message);
-						}
-					}
-					var user = JsonConvert.DeserializeObject <T>(response.Json);
-					//var user = JsonProvider.ReadBackendlessObjectFromJson<BackendlessUser>(response.Json);
-					BackendlessCallback<T>.InvokeComplete (callback, user);
+					var json = JsonConvert.SerializeObject (new { login = @username, password = @password});
+					var response = await restPoint.PostAsync (json);
+					CheckResponse(response);
+					var user = JsonConvert.DeserializeObject <T> (response.Json);
 					return user;
 				}
 			} catch (Exception ex) {
-				BackendlessHadlerException.SendException (ex, callback.ErrorHandler);
+				BackendlessHadlerException.SendException (ex, errorCallback);
 				return null;
 			}
 		}
 
-		public System.Threading.Tasks.Task<bool> PasswordReset (string _username,BackendlessCallback<BackendlessUser> callback = null)
+		public async Task<bool> UpdateAsync (BackendlessUser user, ErrorBackendlessCallback errorCallback = null)
 		{
-			throw new NotImplementedException ();
+			try {
+				if (string.IsNullOrEmpty (user.UserToken))
+					throw new ArgumentException ("user.UserToken is null or empty");
+				using (var restPoint = RestPoint) {
+					restPoint.Header[BackendlessUser.UserTokenKey]=user.UserToken;
+					restPoint.Method = string.Format ("{0}/{1}",UpdateMethodPath,user.ObjectId);
+					var ignoreProperties = new [] { 
+						BackendlessObject.ObjectIdKey,
+						BackendlessObject.OwnerIdKey,
+						BackendlessObject.UpdatedKey,
+						BackendlessObject.MetaKey,
+						BackendlessObject.CreatedKey,
+						BackendlessUser.LastLoginKey,
+						BackendlessUser.UserTokenKey
+					};
+					var json = JsonConvert.SerializeObject (user, new JsonSerializerSettings {
+						ContractResolver = new RegistrationContractResolver (ignoreProperties),
+						NullValueHandling = NullValueHandling.Ignore
+					});
+					var response = await restPoint.PutAsync (json);
+					CheckResponse (response);
+					JsonConvert.PopulateObject (response.Json, user);
+					return true;
+				}
+			} catch (Exception ex) {
+				BackendlessHadlerException.SendException (ex, errorCallback);
+				return false;
+			}
 		}
 
-		public System.Threading.Tasks.Task<bool> Logout (BackendlessUser user,BackendlessCallback<BackendlessUser> callback = null)
+		public async Task<bool> PasswordResetAsync (string @username,ErrorBackendlessCallback errorCallback = null)
 		{
-			throw new NotImplementedException ();
+			try {
+				if (string.IsNullOrEmpty (@username))
+					throw new ArgumentException ("@username is null or empty");
+				using (var restPoint = RestPoint) {
+					restPoint.Method = string.Format ("{0}/{1}", RestorePassword, @username);
+					var response = await restPoint.GetAsync ();
+					CheckResponse (response);
+					return true;
+				}
+			} catch (Exception ex) {
+				BackendlessHadlerException.SendException (ex, errorCallback);
+				return false;
+			}
+		}
+
+		public async Task<bool> LogoutAsync (BackendlessUser user,ErrorBackendlessCallback errorCallback = null)
+		{
+			try {
+				if (string.IsNullOrEmpty (user.UserToken))
+					throw new ArgumentException ("user.UserToken is null or empty");
+				using (var restPoint = RestPoint) {
+					restPoint.Header[BackendlessUser.UserTokenKey]=user.UserToken;
+					restPoint.Method = LogoutMethodPath;
+					var response = await restPoint.GetAsync ();
+					CheckResponse (response);
+					return true;
+				}
+			}catch(Exception ex){
+				BackendlessHadlerException.SendException (ex, errorCallback);
+				return false;
+			}
 		}
 
 		#endregion
+
+
+		static void CheckResponse(ResponseObject response){
+			if (response.StatusCode != HttpStatusCode.OK) {
+				BackendlessError error = null;
+				if (BackendlessError.TryParse (response.Json, ref error)) {
+					throw new BackendlessException (error.ErrorCode, error.Message);
+				} else {
+					throw new BackendlessException (0, response.Json);
+				}
+			}
+		}
+
+		class RegistrationContractResolver : DefaultContractResolver
+		{
+			readonly IList<string> _ignoreProperties;
+
+			public RegistrationContractResolver(IList<string> ignoreProperties)
+			{
+				_ignoreProperties = ignoreProperties;
+			}
+
+			protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+			{
+				var properties = base.CreateProperties (type, memberSerialization);
+				return properties.Where (p => !_ignoreProperties.Contains (p.PropertyName)).ToList ();
+			}
+		}
 	}
 }
 

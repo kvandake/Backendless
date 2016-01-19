@@ -3,8 +3,15 @@ using Newtonsoft.Json;
 
 namespace Backendless.Core
 {
+
+
+	public delegate void ErrorBackendlessCallback (BackendlessError error);
+
+
+
 	public class BackendlessError
 	{
+
 		[JsonProperty("code")]
 		public int ErrorCode { get; private set;}
 
