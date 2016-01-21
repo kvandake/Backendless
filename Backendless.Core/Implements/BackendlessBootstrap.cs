@@ -16,6 +16,7 @@ namespace Backendless.Core
 
 
 
+		IConfigBackendless configBackendless;
 		static readonly object mutex = new object ();
 		readonly string _apiVersion;
 		readonly string _baseUrl;
@@ -71,6 +72,18 @@ namespace Backendless.Core
 					: null;
 		}
 
+
+		internal IBackendlessRestEndPoint CreateRestPoint{
+			get{
+				return configBackendless.CreateRestPoint;
+			}
+		}
+
+		internal IBackendlessCacheTableProvider DefaultCacheTableProvider{
+			get{
+				return configBackendless.DefaultCacheTableProvider;
+			}
+		}
 
 		public static string RootUrl {
 			get {

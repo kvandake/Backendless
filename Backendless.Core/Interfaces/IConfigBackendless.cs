@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using Plugin.Connectivity.Abstractions;
 
 namespace Backendless.Core
 {
 	public interface IConfigBackendless
 	{
 
-		IDictionary<Type,object> Services { get;}
+		IBackendlessRestEndPoint CreateRestPoint { get;}
 
-		IDictionary<Type,Type> EndPoints { get;}
+		IBackendlessCacheTableProvider DefaultCacheTableProvider{ get;}
 
-
+		IConnectivity Connectivity { get;}
 	}
 }
 

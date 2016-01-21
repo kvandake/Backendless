@@ -47,7 +47,7 @@ namespace Backendless.Core
 						BackendlessUser.UserTokenKey
 					};
 					var json = JsonConvert.SerializeObject (user, new JsonSerializerSettings {
-						ContractResolver = new RegistrationContractResolver (ignoreProperties),
+						ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties),
 						NullValueHandling = NullValueHandling.Ignore
 					});
 					var response = await restPoint.PostAsync (json);
@@ -99,7 +99,7 @@ namespace Backendless.Core
 						BackendlessUser.UserTokenKey
 					};
 					var json = JsonConvert.SerializeObject (user, new JsonSerializerSettings {
-						ContractResolver = new RegistrationContractResolver (ignoreProperties),
+						ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties),
 						NullValueHandling = NullValueHandling.Ignore
 					});
 					var response = await restPoint.PutAsync (json);
@@ -162,21 +162,7 @@ namespace Backendless.Core
 			}
 		}
 
-		class RegistrationContractResolver : DefaultContractResolver
-		{
-			readonly IList<string> _ignoreProperties;
 
-			public RegistrationContractResolver(IList<string> ignoreProperties)
-			{
-				_ignoreProperties = ignoreProperties;
-			}
-
-			protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
-			{
-				var properties = base.CreateProperties (type, memberSerialization);
-				return properties.Where (p => !_ignoreProperties.Contains (p.PropertyName)).ToList ();
-			}
-		}
 	}
 }
 

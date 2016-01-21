@@ -45,17 +45,19 @@
     <Compile Include="Simple\SimpleUserService.cs" />
     <Compile Include="Exception\BackendlessError.cs" />
     <Compile Include="Ext\BackendlessCallback.cs" />
-    <Compile Include="Interfaces\IBackendlessJsonProvider.cs" />
-    <Compile Include="Interfaces\IBackendlessJsonConverter.cs" />
-    <Compile Include="Simple\SimpleBackendlessJsonProvider.cs" />
     <Compile Include="Model\ResponseObjectGeneric.cs" />
     <Compile Include="Model\ResponseObject.cs" />
     <Compile Include="Converters\UnixDateTimeConverter.cs" />
     <Compile Include="Attr\PublicAPI.cs" />
     <Compile Include="Model\BackendlessEntity.cs" />
-    <Compile Include="Interfaces\IPersistenceService.cs" />
-    <Compile Include="Simple\SimplePersistenceService.cs" />
     <Compile Include="Interfaces\IBackendlessCacheTable.cs" />
+    <Compile Include="Enums\BackendlessCachePolicy.cs" />
+    <Compile Include="Interfaces\IEntityService.cs" />
+    <Compile Include="Simple\SimpleEntityService.cs" />
+    <Compile Include="Interfaces\IBackendlessConnectivity.cs" />
+    <Compile Include="Custom\IgnoreProprtyContractResolver.cs" />
+    <Compile Include="Attr\BackendlessEntitySettings.cs" />
+    <Compile Include="Interfaces\IBackendlessCacheTableProvider.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>
@@ -71,6 +73,7 @@
     <Folder Include="Custom\" />
     <Folder Include="Converters\" />
     <Folder Include="Callback\" />
+    <Folder Include="Enums\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Polly">
