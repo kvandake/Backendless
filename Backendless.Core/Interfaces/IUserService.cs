@@ -2,7 +2,6 @@
 
 namespace Backendless.Core
 {
-	[PublicAPI("base user service")]
 	public interface IUserService
 	{
 

@@ -55,6 +55,7 @@
     <Compile Include="Model\BackendlessEntity.cs" />
     <Compile Include="Interfaces\IPersistenceService.cs" />
     <Compile Include="Simple\SimplePersistenceService.cs" />
+    <Compile Include="Interfaces\IBackendlessCacheTable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>
