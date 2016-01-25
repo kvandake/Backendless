@@ -24,6 +24,8 @@ namespace Backendless.Core.Test
 			}
 		}
 
+
+		public EventHandler<BackendlessError> GlobalHandler {get;set;}
 		#endregion
 
 

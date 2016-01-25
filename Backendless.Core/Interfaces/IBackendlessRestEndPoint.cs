@@ -17,29 +17,21 @@ namespace Backendless.Core
 
 		IDictionary<string,string> Parameters { get; set;}
 
-		Task<ResponseObject> GetAsync(CancellationToken cancellationToken = default(CancellationToken));
+		Task<ResponseObject> GetJsonAsync(CancellationToken cancellationToken = default(CancellationToken));
 
-		Task<ResponseObject> PutAsync(string json = null,CancellationToken cancellationToken = default(CancellationToken));
+		Task<ResponseObject> PutJsonAsync(string json = null,CancellationToken cancellationToken = default(CancellationToken));
 
-		Task<ResponseObject> PostAsync(string json = null, CancellationToken cancellationToken = default(CancellationToken));
+		Task<ResponseObject> PostJsonAsync(string json = null, CancellationToken cancellationToken = default(CancellationToken));
 
-		Task<ResponseObject> DeleteAsync(CancellationToken cancellationToken = default(CancellationToken));
+		Task<ResponseObject> DeleteJsonAsync(CancellationToken cancellationToken = default(CancellationToken));
+
+		Task<ResponseObject> PostAsync(byte[] array, CancellationToken cancellationToken = default(CancellationToken));
+
+
 
 		Task<ResponseObjectGeneric<Stream>> GetStreamAsync (CancellationToken cancellationToken = default(CancellationToken));
 
 		Task<ResponseObjectGeneric<byte[]>> GetByteArrayAsync (CancellationToken cancellationToken = default(CancellationToken));
-
-		ResponseObjectGeneric<T> Get<T> ();
-
-		ResponseObjectGeneric<T> Put<T>(object body = null);
-
-		ResponseObjectGeneric<T> Post<T>(object body = null);
-
-		ResponseObjectGeneric<T> Delete<T>();
-
-		ResponseObjectGeneric<Stream> GetStream ();
-
-		ResponseObjectGeneric<byte[]> GetByteArray ();
 
 	}
 }

@@ -16,9 +16,8 @@ namespace Backendless.Core
 
 		static IBackendlessRestEndPoint RestPoint {
 			get {
-				var rest = BackendlessInternal.Locator.Platform.CreatorRestPoint;
-				rest.BaseAddress = BackendlessInternal.RootUrl;
-				rest.Header = BackendlessInternal.DefaultHeader;
+				var rest = BackendlessInternal.DefaultRestPoint;
+				rest.Header [BackendlessConstant.ContentTypeKey] = BackendlessConstant.JsonContentTypeValue;
 				return rest;
 			}
 		}
@@ -45,14 +44,14 @@ namespace Backendless.Core
 						ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties),
 						NullValueHandling = NullValueHandling.Ignore
 					});
-					var response = await restPoint.PostAsync (json);
+					var response = await restPoint.PostJsonAsync (json);
 					CheckResponse(response);
 					user.RemoveProperty ("password");
 					JsonConvert.PopulateObject (response.Json, user);
 					return true;
 				}
 			} catch (Exception ex) {
-				BackendlessHadlerException.SendException (ex, errorCallback);
+				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
 			}
 		}
@@ -65,13 +64,13 @@ namespace Backendless.Core
 				using (var restPoint = RestPoint) {
 					restPoint.Method = LoginMethodPath;
 					var json = JsonConvert.SerializeObject (new { login = @username, password = @password});
-					var response = await restPoint.PostAsync (json);
+					var response = await restPoint.PostJsonAsync (json);
 					CheckResponse(response);
 					var user = JsonConvert.DeserializeObject <T> (response.Json);
 					return user;
 				}
 			} catch (Exception ex) {
-				BackendlessHadlerException.SendException (ex, errorCallback);
+				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return null;
 			}
 		}
@@ -97,13 +96,13 @@ namespace Backendless.Core
 						ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties),
 						NullValueHandling = NullValueHandling.Ignore
 					});
-					var response = await restPoint.PutAsync (json);
+					var response = await restPoint.PutJsonAsync (json);
 					CheckResponse (response);
 					JsonConvert.PopulateObject (response.Json, user);
 					return true;
 				}
 			} catch (Exception ex) {
-				BackendlessHadlerException.SendException (ex, errorCallback);
+				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
 			}
 		}
@@ -115,12 +114,12 @@ namespace Backendless.Core
 					throw new ArgumentException ("@username is null or empty");
 				using (var restPoint = RestPoint) {
 					restPoint.Method = string.Format ("{0}/{1}", RestorePassword, @username);
-					var response = await restPoint.GetAsync ();
+					var response = await restPoint.GetJsonAsync ();
 					CheckResponse (response);
 					return true;
 				}
 			} catch (Exception ex) {
-				BackendlessHadlerException.SendException (ex, errorCallback);
+				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
 			}
 		}
@@ -133,12 +132,12 @@ namespace Backendless.Core
 				using (var restPoint = RestPoint) {
 					restPoint.Header[BackendlessUser.UserTokenKey]=user.UserToken;
 					restPoint.Method = LogoutMethodPath;
-					var response = await restPoint.GetAsync ();
+					var response = await restPoint.GetJsonAsync ();
 					CheckResponse (response);
 					return true;
 				}
 			} catch(Exception ex){
-				BackendlessHadlerException.SendException (ex, errorCallback);
+				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
 			}
 		}

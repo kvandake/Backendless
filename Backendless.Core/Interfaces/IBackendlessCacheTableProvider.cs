@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
 namespace Backendless.Core
@@ -13,7 +12,9 @@ namespace Backendless.Core
 
 		Task<bool> DeleteObject(string tableName, string objectId);
 
-		Task<JArray> ReadObjects (string tableName, IBackendlessQuery query);
+		Task<JArray> ReadObjects<T> (string tableName, IBackendlessQuery<T> query) where T: BackendlessEntity;
+
+		Task<bool> MergeObjects<T> (string tableName, IBackendlessQuery<T> query, JArray serverItems) where T: BackendlessEntity;
 
 	}
 }

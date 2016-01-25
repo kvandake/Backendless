@@ -1,4 +1,7 @@
-﻿namespace Backendless.Core
+﻿using System;
+using Backendless.Core;
+
+namespace Backendless.Core
 {
 	public interface IBackendlessPlatform
 	{
@@ -7,6 +10,8 @@
 		IBackendlessCacheTableProvider CreatorDefaultCacheTableProvider {get;}
 
 		IBackendlessConnectivity Connectivity {get;}
+
+		EventHandler<BackendlessError> GlobalHandler {get;}
 
 	}
 }

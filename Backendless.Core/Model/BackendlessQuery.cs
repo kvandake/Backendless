@@ -8,151 +8,108 @@ using Newtonsoft.Json;
 
 namespace Backendless.Core
 {
-	public class BackendlessQuery<T> : IBackendlessQuery where T: BackendlessEntity
+	public class BackendlessQuery<T> : IBackendlessQuery<T> where T: BackendlessEntity
 	{
+
+
+		public BackendlessQuery(){
+			QueryType = BackendlessQueryType.Advanced;
+			DateTimeQueryFormat = "o";
+		}
+
+		internal BackendlessQuery(string query,BackendlessQueryType queryType = BackendlessQueryType.Basic){
+			Query = query;
+			QueryType = queryType;
+		}
+
 
 		public static BackendlessQuery<T> FirstQuery{
 			get{
-				return null;
+				return new BackendlessQuery<T> ("/first");
 			}
 		}
 
 		public static BackendlessQuery<T> LastQuery{
 			get{
-				return null;
+				return new BackendlessQuery<T> ("/last");
 			}
 		}
 
-		public static BackendlessQuery<T> AllCollectionQuery{
-			get{
-				return null;
+		public static BackendlessQuery<T> AllCollectionQuery {
+			get {
+				return new BackendlessQuery<T> ("/", BackendlessQueryType.Advanced);
 			}
 		}
 
 		public static BackendlessQuery<T> FromObjectIdQuery(string objectId){
-			return null;
-		}
-
-
-
-		readonly StringBuilder sb = new StringBuilder ();
-		string dateTimeQueryFormat = "o";
-		List<string> _props;
-		List<string> _sortProps;
-		Expression<Func<T,bool>> _filter;
-		int? _pageSize;
-		uint _offset;
-
-
-		public string DateTimeQueryFormat {
-			get {
-				return dateTimeQueryFormat;
-			}
-			set {
-				dateTimeQueryFormat = value;
-			}
-		}
-
-		internal List<string> PropsInternal {
-			get {
-				return _props ?? (_props = new List<string> ());
-			}
-		}
-
-		internal List<string> SortPropsInternal {
-			get {
-				return _sortProps ?? (_sortProps = new List<string> ());
-			}
-		}
-
-		internal Expression<Func<T, bool>> FilterInternal {
-			get {
-				return _filter;
-			}
-		}
-
-		internal int? PageSizeInternal {
-			get {
-				return _pageSize;
-			}
-		}
-
-		internal uint OffsetInternal {
-			get {
-				return _offset;
-			}
+			return new BackendlessQuery<T> (string.Concat ("/",objectId));
 		}
 
 		#region IBackendlessQuery implementation
 
-		public string ToQuery {
+		public IList<string> Props { get; private set;}
+
+		public IList<string> SortBy { get; private set;}
+
+		public string WhereToString {
 			get {
-				if (PropsInternal.Count != 0) {
-					sb.Append (string.Format ("{0}={1}", "props", string.Join (",", PropsInternal)));
-					sb.Append ("&");
-				}
-				if (FilterInternal != null) {
-					sb.Append (ParseFilterProvider.Parse (FilterInternal,DateTimeQueryFormat));
-					sb.Append ("&");
-				} 
-				if (PageSizeInternal.HasValue) {
-					sb.Append (string.Format ("{0}={1}", "pageSize", PageSizeInternal));
-					sb.Append ("&");
-				}
-				if (SortPropsInternal.Count != 0) {
-					sb.Append (string.Format ("{0}={1}", "sortBy", string.Join (",", SortPropsInternal)));
-					sb.Append ("&");
-				}
-				sb.Append (string.Format ("{0}={1}", "offset", OffsetInternal));
-				return sb.ToString ();
+				return ParseFilterProvider.Parse (Where, DateTimeQueryFormat);
 			}
 		}
 
 		#endregion
 
-		public BackendlessQuery<T> Prop<P>(Expression<Func<T,P>> prop){
-			var member = prop.Body as MemberExpression;
-			PropsInternal.Add (MemberNameToSearchName(member));
-			return this;
-		}
+		#region Private
 
-		public BackendlessQuery<T> Where(Expression<Func<T,bool>> filter){
-			_filter = filter;
-			return this;
-		}
+		public BackendlessQueryType QueryType { get; private set;}
 
-		public BackendlessQuery<T> SortBy<P>(Expression<Func<T,P>> prop){
-			var member = prop.Body as MemberExpression;
-			SortPropsInternal.Add (MemberNameToSearchName(member));
-			return this;
-		}
-
-		public BackendlessQuery<T> PageSize(int pageSize){
-			_pageSize = pageSize;
-			return this;
-		}
-
-		public BackendlessQuery<T> Offset(uint offset){
-			_offset = offset;
-			return this;
-		}
-			
-			
-
-
-
-
-		#region VisitFilter
-
-
+		public string Query { get; private set;}
 
 		#endregion
+
+		#region Public 
+
+		public int? Limit { get; set;}
+
+		public uint Offset { get; set;}
+
+		public string DateTimeQueryFormat { get; set;}
+
+		public Expression<Func<T,bool>>  Where { get; set;}
+
+		#endregion
+
+	
+
+
+
+		public BackendlessQuery<T> SetSortBy<P>(Expression<Func<T,P>> prop){
+			var member = prop.Body as MemberExpression;
+			SortBy = SortBy ?? new List<string> ();
+			SortBy.Add (MemberNameToSearchName (member));
+			return this;
+		}
+
+
+
+		public BackendlessQuery<T> SetProp<P>(Expression<Func<T,P>> prop){
+			var member = prop.Body as MemberExpression;
+			Props = Props ?? new List<string> ();
+			Props.Add (MemberNameToSearchName (member));
+			return this;
+		}
+			
+		static string MemberNameToSearchName(MemberExpression member){
+			var customAttributes = member.Member.CustomAttributes.ToList ();
+			var def = customAttributes.FirstOrDefault (x => x.AttributeType == typeof(JsonPropertyAttribute));
+			return def != null ? def.ConstructorArguments [0].Value.ToString () : member.Member.Name;
+		}
+
 
 		class ParseFilterProvider {
 
 		string dateTimeQueryFormat;
-		readonly StringBuilder sb = new StringBuilder("where=");
-		
+		readonly StringBuilder sb = new StringBuilder();
 			public static string Parse(Expression expr,string dateTimeQueryFormat){
 				var p = new ParseFilterProvider (dateTimeQueryFormat);
 				return p.ParseFilter (expr);
@@ -274,7 +231,7 @@ namespace Backendless.Core
 					break;
 				case ExpressionType.Or:
 				case ExpressionType.OrElse:
-					sb.Append (" OR");
+					sb.Append (" OR ");
 					break;
 				case ExpressionType.Equal:
 					sb.Append (" = ");
@@ -303,12 +260,6 @@ namespace Backendless.Core
 		}
 
 
-		static string MemberNameToSearchName(MemberExpression member){
-			var customAttributes = member.Member.CustomAttributes.ToList ();
-			var def = customAttributes.FirstOrDefault (x => x.AttributeType == typeof(JsonPropertyAttribute));
-			return def != null ? def.ConstructorArguments [0].Value.ToString () : member.Member.Name;
-		}
 
 	}
 }
-

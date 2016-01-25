@@ -51,6 +51,7 @@
     <Compile Include="Custom\CustomCachTableProvider.cs" />
     <Compile Include="Custom\PermanentTestEntity.cs" />
     <Compile Include="Custom\StandartTestEntity.cs" />
+    <Compile Include="TestFile.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

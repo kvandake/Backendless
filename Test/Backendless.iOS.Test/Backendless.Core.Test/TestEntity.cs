@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 
 namespace Backendless.Core.Test
 {
-	[TestFixture ()]
+	//[TestFixture ()]
 	public class TestEntity
 	{
-		[SetUp]
+		//[SetUp]
 		public void Setup(){
 			BackendlessBootstrap.Init (new TestBackendlessPlatform (), TestConstant.LocalApplicationId,TestConstant.LocalSecretKey, TestConstant.LocalApiVersion, TestConstant.LocalBaseAddress);
 		}
@@ -42,13 +42,20 @@ namespace Backendless.Core.Test
 			Console.WriteLine (result);
 		}
 
-		[Test]
+		//[Test]
 		public async void SearchPermanentEntity(){
 			//var res = BackendlessEntity.ReadAsync<PermanentTestEntity>(x => x.IsDeleted = true && x.TestName == "tyty");
 			var query = new BackendlessQuery<PermanentTestEntity> ();
-			var now = DateTime.Now;
-			query.Offset (20).PageSize (20).Prop (x => x.TestCreated).SortBy (x => x.TestName).Where (x => x.TestName == "123" && x.IsDeleted == false && x.TestCreated == DateTime.Now);
-			var g1 = query.ToQuery;
+			query.Where = x => x.TestName == "put 1" || x.TestCreated == DateTime.Now;
+			var items = await BackendlessEntity.ReadAsync<PermanentTestEntity> (query);
+			var g = 0;
+		}
+
+		//[Test]
+		public async void BasicSearchPermanentEntity(){
+			//var res = BackendlessEntity.ReadAsync<PermanentTestEntity>(x => x.IsDeleted = true && x.TestName == "tyty");
+			var query = BackendlessQuery<PermanentTestEntity>.AllCollectionQuery;
+			var items = await BackendlessEntity.ReadAsync<PermanentTestEntity> ("AF071F6A-CA8B-1D00-FF14-C35C8A623800");
 			var g = 0;
 		}
 

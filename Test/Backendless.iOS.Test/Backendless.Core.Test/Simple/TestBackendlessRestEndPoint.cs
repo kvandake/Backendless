@@ -9,6 +9,10 @@ using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Web.Script.Serialization;
 using ModernHttpClient;
+using System.IO;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Globalization;
 
 namespace Backendless.Core.Test
 {
@@ -42,28 +46,58 @@ namespace Backendless.Core.Test
 
 		#region IRestEndPoint implementation
 
-		public async Task<ResponseObject> GetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		public async Task<ResponseObject> GetJsonAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
 			var response = await base.GetAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters),cancellationToken);
 			return await ReadResponse(response);
 		}
 
-		public async Task<ResponseObject> PutAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		public async Task<ResponseObject> PutJsonAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
 			var response = await base.PutAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
 			return await ReadResponse(response);
 		}
 
-		public async Task<ResponseObject> PostAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		public async Task<ResponseObject> PostJsonAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
 			var response = await base.PostAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
 			return await ReadResponse(response);
 		}
 
-		public async Task<ResponseObject> DeleteAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		public async Task<ResponseObject> PostAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		{
+			try {
+				
+
+				ApplyHeader ();
+				//multipart.Add (new ByteArrayContent (array));
+				var path = BaseAddress.LocalPath + ToQueryParameters (Parameters);
+				using (var content = new MultipartFormDataContent ()) {
+					StreamContent streamContent = new StreamContent (GenerateStreamFromString ("Hello world"));
+					streamContent.Headers.ContentType = new MediaTypeHeaderValue ("application/octet-stream");
+					content.Add(streamContent, "file", "post.xml");
+					var response = await base.PostAsync (path, content).ConfigureAwait (false);
+					return await ReadResponse (response);
+				}
+
+			} catch (Exception ex) {
+				return null;
+			}
+		
+		}
+
+
+		public static Stream GenerateStreamFromString(string str)
+		{
+			byte[] byteArray = Encoding.UTF8.GetBytes(str);
+			return new MemoryStream(byteArray);
+		}
+
+
+		public async Task<ResponseObject> DeleteJsonAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
 			var response = await base.DeleteAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters),cancellationToken);
@@ -80,39 +114,10 @@ namespace Backendless.Core.Test
 		public async Task<ResponseObjectGeneric<byte[]>> GetByteArrayAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var byteArray = await base.GetByteArrayAsync (ToQueryParameters (Parameters));
+			var byteArray = await base.GetByteArrayAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters));
 			return new ResponseObjectGeneric<byte[]> (HttpStatusCode.OK, byteArray);
 		}
-
-		public ResponseObjectGeneric<T> Get<T> ()
-		{
-			throw new NotImplementedException ();
-		}
-
-		public ResponseObjectGeneric<T> Put<T> (object body = null)
-		{
-			throw new NotImplementedException ();
-		}
-
-		public ResponseObjectGeneric<T> Post<T> (object body = null)
-		{
-			throw new NotImplementedException ();
-		}
-
-		public ResponseObjectGeneric<T> Delete<T> ()
-		{
-			throw new NotImplementedException ();
-		}
-
-		public ResponseObjectGeneric<System.IO.Stream> GetStream ()
-		{
-			throw new NotImplementedException ();
-		}
-
-		public ResponseObjectGeneric<byte[]> GetByteArray ()
-		{
-			throw new NotImplementedException ();
-		}
+			
 
 		public IDictionary<string, string> Header {get;set;}
 

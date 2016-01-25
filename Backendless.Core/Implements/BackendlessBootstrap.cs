@@ -11,19 +11,12 @@ namespace Backendless.Core
 			BackendlessInternal.Locator = backenlessInternal;
 		}
 			
+			
 	}
 
 
 	class BackendlessInternal {
 
-		const string DefaultBaseUrl = "https://api.backendless.com";
-		const string SuffixApi = "/api/";
-		const string ApplicationIdKey = "application-id";
-		const string SecretKeyKey = "secret-key";
-		const string ContentTypeKey = "Content-Type";
-		const string ApplicationTypeKey = "application-type";
-		const string DefaultContentTypeValue = "application/json";
-		const string DefaultApplicationTypeValue = "REST";
 
 		readonly string _apiVersion;
 		readonly string _baseUrl;
@@ -36,6 +29,7 @@ namespace Backendless.Core
 
 		IUserService userService;
 		IEntityService entityService;
+		IFileService fileService;
 
 		#endregion
 
@@ -83,12 +77,18 @@ namespace Backendless.Core
 			}
 		}
 
+		public IFileService FileService {
+			get {
+				return fileService ?? (fileService = new SimpleFileService ());
+			}
+		}
+
 		public static string RootUrl {
 			get {
 				if (Locator == null)
 					throw new NullReferenceException ("Locator from the BackendlessBootsrap");
 				string url = string.Empty;
-				url += Locator.BaseUrl == DefaultBaseUrl ? DefaultBaseUrl : Locator.BaseUrl + SuffixApi;
+				url += Locator.BaseUrl == BackendlessConstant.DefaultBaseUrl ? BackendlessConstant.DefaultBaseUrl : Locator.BaseUrl + BackendlessConstant.SuffixApi;
 				url += Locator.ApiVersion;
 				return url;	
 			}
@@ -114,11 +114,19 @@ namespace Backendless.Core
 				if (Locator == null)
 					throw new NullReferenceException ("Locator from the BackendlessBootsrap");
 				var header = new Dictionary<string,string> ();
-				header.Add (ApplicationIdKey, Locator.ApplicationId);
-				header.Add (SecretKeyKey, Locator.SecretKey);
-				header.Add (ContentTypeKey, DefaultContentTypeValue);
-				header.Add (ApplicationTypeKey, DefaultApplicationTypeValue);
+				header.Add (BackendlessConstant.ApplicationIdKey, Locator.ApplicationId);
+				header.Add (BackendlessConstant.SecretKeyKey, Locator.SecretKey);
+				header.Add (BackendlessConstant.ApplicationTypeKey, BackendlessConstant.DefaultApplicationTypeValue);
 				return header;
+			}
+		}
+
+		internal static IBackendlessRestEndPoint DefaultRestPoint {
+			get {
+				var rest = Locator.Platform.CreatorRestPoint;
+				rest.BaseAddress = BackendlessInternal.RootUrl;
+				rest.Header = BackendlessInternal.DefaultHeader;
+				return rest;
 			}
 		}
 
@@ -126,10 +134,33 @@ namespace Backendless.Core
 		internal BackendlessInternal (IBackendlessPlatform platform, string applicationId, string secretKey, string apiVersion,string baseUrl = null)
 		{
 			_platform = platform;
-			_baseUrl = string.IsNullOrEmpty (baseUrl) ? DefaultBaseUrl : baseUrl;
+			_baseUrl = string.IsNullOrEmpty (baseUrl) ? BackendlessConstant.DefaultBaseUrl : baseUrl;
 			_apiVersion = apiVersion;
 			_applicationId = applicationId;
 			_secretKey = secretKey;
+		}
+
+
+
+		internal void SendException(Exception ex, ErrorBackendlessCallback errorCalback = null){
+			var backendlessException = ex as BackendlessException;
+			int errorCode = 0;
+			string errorMessage = ex.Message;
+			if (backendlessException != null) {
+				errorCode = backendlessException.ErrorCode;
+				SendExceptionToPublic (backendlessException);
+			} else {
+				SendExceptionToPublic (new BackendlessException (0, ex.Message, ex));
+			}
+			if (errorCalback != null) {
+				errorCalback (new BackendlessError (errorCode, errorMessage));
+			}
+		}
+
+		internal void SendExceptionToPublic(BackendlessException exception){
+			var handler = _platform.GlobalHandler;
+			if (handler != null)
+				handler (this, (BackendlessError)exception);
 		}
 	}
 }

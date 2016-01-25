@@ -40,6 +40,7 @@ namespace Backendless.Core
 				error = JsonConvert.DeserializeObject<BackendlessError> (json);
 				return true;
 			} catch (Exception ex) {
+				BackendlessInternal.Locator.SendException (ex);
 				return false;
 			}
 		}

@@ -26,6 +26,16 @@ namespace Backendless.Core.Test
 			return true;
 		}
 
+
+		public async System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JArray> ReadObjects<T> (string tableName, IBackendlessQuery<T> query) where T : BackendlessEntity
+		{
+			return null;
+		}
+
+		public async System.Threading.Tasks.Task<bool> MergeObjects<T> (string tableName, IBackendlessQuery<T> query, Newtonsoft.Json.Linq.JArray serverItems) where T : BackendlessEntity
+		{
+			return true;
+		}
 		#endregion
 
 
