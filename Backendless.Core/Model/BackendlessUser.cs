@@ -21,7 +21,11 @@ namespace Backendless.Core
 		string email;
 		string username;
 
-
+		static IUserService UserService {
+			get{
+				return BackendlessInternal.Locator.UserService;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the username.
@@ -93,7 +97,7 @@ namespace Backendless.Core
 		/// </summary>
 		/// <returns>The up async.</returns>
 		public async Task<bool> SignUpAsync(string password, ErrorBackendlessCallback errorCalback = null){
-			return await BackendlessBootstrap.FromContext<IUserService> ().SignUpAsync (this,password, errorCalback);
+			return await UserService.SignUpAsync (this,password, errorCalback);
 		}
 
 		/// <summary>
@@ -102,7 +106,7 @@ namespace Backendless.Core
 		/// <returns>The async.</returns>
 		/// <param name="errorCalback">Error calback.</param>
 		public async Task<bool> UpdateAsync(ErrorBackendlessCallback errorCalback = null){
-			return await BackendlessBootstrap.FromContext<IUserService> ().UpdateAsync (this, errorCalback);
+			return await UserService.UpdateAsync (this, errorCalback);
 		}
 
 
@@ -112,18 +116,18 @@ namespace Backendless.Core
 		/// <returns>The async.</returns>
 		/// <param name="errorCallback">Error callback.</param>
 		public async Task<bool> LogoutAsync(ErrorBackendlessCallback errorCallback = null){
-			return await BackendlessBootstrap.FromContext<IUserService> ().LogoutAsync (this, errorCallback);
+			return await UserService.LogoutAsync (this, errorCallback);
 		}
 
 
 		#region Static
 
 		public static async Task<T> LoginAsync<T>(string @username, string @password, ErrorBackendlessCallback errorCalback = null) where T: BackendlessUser{
-			return await BackendlessBootstrap.FromContext<IUserService> ().LoginAsync<T> (username, password, errorCalback);
+			return await UserService.LoginAsync<T> (username, password, errorCalback);
 		}
 			
 		public static async Task<bool> PasswordResetAsync(string @username, ErrorBackendlessCallback errorCallback = null){
-			return await BackendlessBootstrap.FromContext<IUserService> ().PasswordResetAsync (@username, errorCallback);
+			return await UserService.PasswordResetAsync (@username, errorCallback);
 		}
 
 

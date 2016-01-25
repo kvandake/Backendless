@@ -12,14 +12,14 @@ using ModernHttpClient;
 
 namespace Backendless.Core.Test
 {
-	public class SimpleBackendlessRestEndPoint :  HttpClient, IBackendlessRestEndPoint
+	public class TestBackendlessRestEndPoint :  HttpClient, IBackendlessRestEndPoint
 	{
 
-		public SimpleBackendlessRestEndPoint():base(){
+		public TestBackendlessRestEndPoint():base(){
 			Init ();
 		}
 
-		public SimpleBackendlessRestEndPoint(HttpMessageHandler messageHandler):base(messageHandler){
+		public TestBackendlessRestEndPoint(HttpMessageHandler messageHandler):base(messageHandler){
 			Init ();
 		}
 
@@ -66,7 +66,7 @@ namespace Backendless.Core.Test
 		public async Task<ResponseObject> DeleteAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.DeleteAsync (ToQueryParameters (Parameters),cancellationToken);
+			var response = await base.DeleteAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters),cancellationToken);
 			return await ReadResponse(response);
 		}
 

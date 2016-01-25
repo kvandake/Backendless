@@ -11,7 +11,7 @@ namespace Backendless.Core
 	{
 
 		public const string TableKey = "___class";
-
+		public const string IsDeletedKey = "_isDeleted";
 
 		string table;
 
@@ -24,6 +24,24 @@ namespace Backendless.Core
 			internal set {
 				table = value;
 				OnPropertyChanged ();
+			}
+		}
+
+		bool isDeleted;
+		[JsonProperty (IsDeletedKey)]
+		public bool IsDeleted {
+			get {
+				return isDeleted;
+			}
+			internal set {
+				isDeleted = value;
+				OnPropertyChanged ();
+			}
+		}
+
+		static IEntityService EntityService {
+			get {
+				return BackendlessInternal.Locator.EntityService;
 			}
 		}
 
@@ -43,37 +61,24 @@ namespace Backendless.Core
 
 
 		public static async Task<bool> SaveAsync(BackendlessEntity item, CancellationToken cancellationToken = default(CancellationToken)){
-			return false;
+			return await EntityService.SaveItem (item, cancellationToken);
 		}
 
 
 		public static async Task<bool> UpdateAsync(BackendlessEntity item, CancellationToken cancellationToken = default(CancellationToken)){
-			return false;
+			return await EntityService.UpdateItem (item, cancellationToken);
 		}
-
-
+			
 		public static async Task<bool> DeleteAsync(BackendlessEntity item, CancellationToken cancellationToken = default(CancellationToken)){
-			return false;
+			return await EntityService.DeleteItem (item, cancellationToken);
 		}
 
-		public static async Task<bool> SaveAsync(IList<BackendlessEntity> items, CancellationToken cancellationToken = default(CancellationToken)){
-			return false;
+		public static async Task<IList<T>> ReadAsync<T>(string objectId, CancellationToken cancellationToken = default(CancellationToken)) where T: BackendlessEntity {
+			return await EntityService.ReadItems<T> (BackendlessQuery<T>.FromObjectIdQuery (objectId), cancellationToken);
 		}
 
-		public static async Task<bool> UpdateAsync(IList<BackendlessEntity> items, CancellationToken cancellationToken = default(CancellationToken)){
-			return false;
-		}
-
-		public static async Task<bool> DeleteAsync(IList<BackendlessEntity> items, CancellationToken cancellationToken = default(CancellationToken)){
-			return false;
-		}
-
-		public static async Task<IList<T>> ReadAsync<T>(Expression<Func<T,bool>> filter, CancellationToken cancellationToken = default(CancellationToken)){
-			return null;
-		}
-
-		public static async Task<T> FirstOrDefault<T>(Expression<Func<T,bool>> filter, CancellationToken cancellationToken = default(CancellationToken)){
-			return default(T);
+		public static async Task<IList<T>> ReadAsync<T>(IBackendlessQuery query, CancellationToken cancellationToken = default(CancellationToken)) where T: BackendlessEntity {
+			return await EntityService.ReadItems<T> (query, cancellationToken);
 		}
 
 		public static async Task<bool> ClearAll(Type table, CancellationToken cancellationToken = default(CancellationToken)){
@@ -106,6 +111,22 @@ namespace Backendless.Core
 		}
 
 		public static async Task<bool> PullServerItems(Type table,string filter, CancellationToken cancellationToken = default(CancellationToken)){
+			return false;
+		}
+
+
+		//-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+		public static async Task<bool> SaveAsync(IList<BackendlessEntity> items, CancellationToken cancellationToken = default(CancellationToken)){
+			return false;
+		}
+
+		public static async Task<bool> UpdateAsync(IList<BackendlessEntity> items, CancellationToken cancellationToken = default(CancellationToken)){
+			return false;
+		}
+
+		public static async Task<bool> DeleteAsync(IList<BackendlessEntity> items, CancellationToken cancellationToken = default(CancellationToken)){
 			return false;
 		}
 

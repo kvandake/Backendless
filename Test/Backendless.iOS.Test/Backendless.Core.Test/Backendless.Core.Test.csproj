@@ -43,12 +43,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Test.cs" />
-    <Compile Include="Implements\TestBackendlessBootstrap.cs" />
-    <Compile Include="Simple\SimpleBackendlessLocalEndPoint.cs" />
-    <Compile Include="Simple\SimpleBackendlessRestEndPoint.cs" />
-    <Compile Include="Simple\SimpleConfigBackendless.cs" />
-    <Compile Include="Test\ITestInteerface.cs" />
     <Compile Include="Custom\CustomBackendlessUser.cs" />
+    <Compile Include="Simple\TestBackendlessPlatform.cs" />
+    <Compile Include="Simple\TestBackendlessRestEndPoint.cs" />
+    <Compile Include="TestEntity.cs" />
+    <Compile Include="TestConstant.cs" />
+    <Compile Include="Custom\CustomCachTableProvider.cs" />
+    <Compile Include="Custom\PermanentTestEntity.cs" />
+    <Compile Include="Custom\StandartTestEntity.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -64,6 +66,5 @@
     <Folder Include="Implements\" />
     <Folder Include="Simple\" />
     <Folder Include="Custom\" />
-    <Folder Include="Test\" />
   </ItemGroup>
 </Project>

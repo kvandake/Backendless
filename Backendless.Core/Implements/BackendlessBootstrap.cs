@@ -5,6 +5,17 @@ namespace Backendless.Core
 {
 	public abstract class BackendlessBootstrap
 	{
+
+		public static void Init(IBackendlessPlatform platform, string applicationId, string secretKey, string apiVersion,string baseUrl = null){
+			var backenlessInternal = new BackendlessInternal (platform, applicationId, secretKey, apiVersion, baseUrl);
+			BackendlessInternal.Locator = backenlessInternal;
+		}
+			
+	}
+
+
+	class BackendlessInternal {
+
 		const string DefaultBaseUrl = "https://api.backendless.com";
 		const string SuffixApi = "/api/";
 		const string ApplicationIdKey = "application-id";
@@ -14,18 +25,20 @@ namespace Backendless.Core
 		const string DefaultContentTypeValue = "application/json";
 		const string DefaultApplicationTypeValue = "REST";
 
-
-
-		IConfigBackendless configBackendless;
-		static readonly object mutex = new object ();
 		readonly string _apiVersion;
 		readonly string _baseUrl;
 		readonly string _applicationId;
 		readonly string _secretKey;
+		readonly IBackendlessPlatform _platform;
 
-		protected abstract IDictionary<Type,Type> Endpoints { get; }
 
-		protected abstract IDictionary<Type, object> Services { get; }
+		#region Services
+
+		IUserService userService;
+		IEntityService entityService;
+
+		#endregion
+
 
 		public string BaseUrl {
 			get {
@@ -51,37 +64,22 @@ namespace Backendless.Core
 			}
 		}
 
-		protected BackendlessBootstrap (string applicationId, string secretKey, string apiVersion,string baseUrl = null)
-		{
-			_baseUrl = string.IsNullOrEmpty (baseUrl) ? DefaultBaseUrl : baseUrl;
-			_apiVersion = apiVersion;
-			_applicationId = applicationId;
-			_secretKey = secretKey;
-		}
-
-
-		/// <summary>
-		/// Creators the end point.
-		/// </summary>
-		/// <returns>The end point.</returns>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		internal T CreatorEndPoint<T>() where T: class{
-			var type = typeof(T);
-			return Endpoints.ContainsKey (type) 
-				? BackendlessExtension.CreatorObjectWithDefaultConstructor (Endpoints[type]) as T
-					: null;
-		}
-
-
-		internal IBackendlessRestEndPoint CreateRestPoint{
-			get{
-				return configBackendless.CreateRestPoint;
+		public IBackendlessPlatform Platform {
+			get {
+				return _platform;
 			}
 		}
 
-		internal IBackendlessCacheTableProvider DefaultCacheTableProvider{
-			get{
-				return configBackendless.DefaultCacheTableProvider;
+
+		public IUserService UserService {
+			get {
+				return userService ?? (userService = new SimpleUserService ());
+			}
+		}
+
+		public IEntityService EntityService {
+			get {
+				return entityService ?? (entityService = new SimpleEntityService ());
 			}
 		}
 
@@ -95,6 +93,21 @@ namespace Backendless.Core
 				return url;	
 			}
 		}
+
+		#region Static
+
+		static volatile BackendlessInternal _locator;
+
+		internal static BackendlessInternal Locator {
+			get {
+				return _locator;
+			} set {
+				_locator = value;
+			}
+		}
+			
+		#endregion
+
 
 		public static IDictionary<string,string> DefaultHeader {
 			get {
@@ -110,67 +123,14 @@ namespace Backendless.Core
 		}
 
 
-
-
-
-
-		void ApplyConfig(IConfigBackendless config){
-			if (config.EndPoints != null) {
-				foreach (var localEndpoint in config.EndPoints) {
-					Endpoints [localEndpoint.Key] = localEndpoint.Value;
-				}
-			}
-			if (config.Services != null) {
-				foreach (var localService in config.Services) {
-					Services [localService.Key] = localService.Value;
-				}
-			}
+		internal BackendlessInternal (IBackendlessPlatform platform, string applicationId, string secretKey, string apiVersion,string baseUrl = null)
+		{
+			_platform = platform;
+			_baseUrl = string.IsNullOrEmpty (baseUrl) ? DefaultBaseUrl : baseUrl;
+			_apiVersion = apiVersion;
+			_applicationId = applicationId;
+			_secretKey = secretKey;
 		}
-
-
-
-
-		/// <summary>
-		/// Resolve the instance.
-		/// </summary>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		public T FromContextInternal<T>(){
-			lock (mutex) {
-				var type = typeof(T);
-				return Services.ContainsKey (type) ? (T)Services [type] : default(T);
-			}
-		}
-
-
-		#region Static
-
-		static volatile BackendlessBootstrap _locator;
-
-		internal static BackendlessBootstrap Locator{
-			get{
-				return _locator;
-			}
-		}
-
-
-		protected static void Init(BackendlessBootstrap backendless, IConfigBackendless config){
-			if (config != null) {
-				backendless.ApplyConfig (config);
-			}
-			_locator = backendless;
-		}
-
-
-		/// <summary>
-		/// Resolve the instance for global.
-		/// </summary>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		public static T FromContext<T>(){
-			return Locator.FromContextInternal<T> ();
-		}
-			
-		#endregion
-
 	}
 }
 

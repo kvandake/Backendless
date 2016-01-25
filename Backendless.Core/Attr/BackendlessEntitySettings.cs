@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace Backendless.Core
 {
@@ -65,7 +66,7 @@ namespace Backendless.Core
 
 		public IBackendlessCacheTableProvider CacheTableProvider {
 			get {
-				if (CacheProviderType == null || CacheProviderType != typeof(IBackendlessCacheTableProvider)) {
+				if (CacheProviderType == null || !typeof(IBackendlessCacheTableProvider).GetTypeInfo().IsAssignableFrom (CacheProviderType.GetTypeInfo())){
 					return null;
 				}
 				var obj = Activator.CreateInstance (CacheProviderType);

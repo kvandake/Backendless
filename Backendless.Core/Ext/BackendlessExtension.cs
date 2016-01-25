@@ -5,6 +5,9 @@ namespace Backendless.Core
 	public static class BackendlessExtension
 	{
 
+		static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+		static readonly double MaxUnixSeconds = (DateTime.MaxValue - UnixEpoch).TotalSeconds;
+
 		/// <summary>
 		/// Creator the object with default constructor.
 		/// </summary>
@@ -13,25 +16,15 @@ namespace Backendless.Core
 		public static object CreatorObjectWithDefaultConstructor(Type type){
 			return Activator.CreateInstance (type);
 		}
-
-
-		public static DateTime GetDateTimeFromGmtTicks(long jsSeconds)
-		{
-			DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-			return start.AddMilliseconds(jsSeconds).ToLocalTime();
-		}
-
-
-
-
-	
+			
 		/// <summary>
 		///   Convert a long into a DateTime
 		/// </summary>
 		public static DateTime FromUnixTime(this Int64 self)
 		{
-			DateTime start = new DateTime (1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-			return start.AddMilliseconds (self).ToLocalTime ();
+			return self > MaxUnixSeconds
+				? UnixEpoch.AddMilliseconds (self).ToLocalTime ()
+					: UnixEpoch.AddSeconds (self).ToLocalTime ();
 		}
 
 		/// <summary>
@@ -42,12 +35,10 @@ namespace Backendless.Core
 			if (self == DateTime.MinValue) {
 				return 0;
 			}
-			var epoc = new DateTime (1970, 1, 1);
-			var delta = self - epoc;
-			if (delta.TotalSeconds < 0)
+			var delta = self.ToUniversalTime () - UnixEpoch;
+			if (delta.TotalMilliseconds < 0)
 				throw new ArgumentOutOfRangeException ("Unix epoc starts January 1st, 1970");
-
-			return (long)delta.TotalSeconds;
+			return (long)delta.TotalMilliseconds;
 		}
 
 	}

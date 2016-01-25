@@ -14,33 +14,34 @@ namespace Backendless.Core
 
 		public const string PrefixData = "/data/";
 
-		public const string IsDeletedColumnName = "__deleted";
+		IDictionary<Type,CacheEntityParameters> tableParameters;
 
-		IDictionary<Type,EntityParameters> tableParameters;
-
-		IDictionary<Type,EntityParameters> TableParameters {
+		IDictionary<Type,CacheEntityParameters> TableParameters {
 			get {
-				return tableParameters ?? (tableParameters = new Dictionary<Type,EntityParameters> ());
+				return tableParameters ?? (tableParameters = new Dictionary<Type,CacheEntityParameters> ());
 			}
 		}
 
 
 
-		IBackendlessRestEndPoint RestPoint {
-			get{
-				return null;
+		static IBackendlessRestEndPoint RestPoint {
+			get {
+				var rest = BackendlessInternal.Locator.Platform.CreatorRestPoint;
+				rest.BaseAddress = BackendlessInternal.RootUrl;
+				rest.Header = BackendlessInternal.DefaultHeader;
+				return rest;
 			}
 		}
 
-		IBackendlessConnectivity Connectivity{
+		static IBackendlessConnectivity Connectivity{
 			get{
-				return null;
+				return BackendlessInternal.Locator.Platform.Connectivity;
 			}
 		}
 
-		IBackendlessCacheTableProvider SimpleBackendlessCacheTableProvider{
-			get{
-				return null;
+		static IBackendlessCacheTableProvider DefaultCacheTableProvider {
+			get {
+				return BackendlessInternal.Locator.Platform.CreatorDefaultCacheTableProvider;
 			}
 		}
 
@@ -51,38 +52,36 @@ namespace Backendless.Core
 		{
 			try {
 				var entityParameters = GetParametersFromEntityType (item.GetType ());
-				if (entityParameters.PermanentRemoval) {
-					item [IsDeletedColumnName] = false;
-				}
-				var ignoreProperties = new [] { 
-					BackendlessObject.ObjectIdKey,
-					BackendlessObject.OwnerIdKey,
-					BackendlessObject.UpdatedKey,
-					BackendlessObject.MetaKey,
-					BackendlessObject.CreatedKey,
-					BackendlessEntity.TableKey
-				};
-				var json = JsonConvert.SerializeObject (item, new JsonSerializerSettings () {
-					ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
-				});
-				JToken tokenItem = null;
+				item.IsDirty = true;
 				if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.CacheOnly) {
 					if (Connectivity.IsConnected) {
+						var ignoreProperties = new List<string> () { 
+							BackendlessObject.ObjectIdKey,
+							BackendlessObject.IsDirtyKey,
+							BackendlessObject.OwnerIdKey,
+							BackendlessObject.UpdatedKey,
+							BackendlessObject.MetaKey,
+							BackendlessObject.CreatedKey,
+							BackendlessEntity.TableKey
+						};
+						if (!entityParameters.PermanentRemoval) {
+							ignoreProperties.Add (BackendlessEntity.IsDeletedKey);
+						}
+						var json = JsonConvert.SerializeObject (item, new JsonSerializerSettings {
+							ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
+						});
 						using (var rest = RestPoint) {
 							rest.Method = string.Concat (PrefixData, entityParameters.TableName);
 							var response = await rest.PostAsync (json, cancellationToken);
 							if (response.StatusCode == HttpStatusCode.OK) {
-								tokenItem = JToken.Parse (response.Json);
+								JsonConvert.PopulateObject (response.Json, item);
+								item.IsDirty = false;
 							}
 						}
 					}
 				}
-				//check token
-				if (tokenItem == null) {
-					tokenItem = JToken.Parse (json);
-				}
-				var cacheTableProvider = entityParameters.CacheTableProvider;
-				return await cacheTableProvider.SaveObject (entityParameters.TableName, tokenItem);
+				return entityParameters.BackendlessCachePolicy == BackendlessCachePolicy.ServerOnly
+				|| await entityParameters.CacheTableProvider.SaveObject (entityParameters.TableName, JObject.FromObject (item));
 			} catch (Exception ex) {
 				return false;
 			}
@@ -90,12 +89,114 @@ namespace Backendless.Core
 
 
 
+		public async Task<bool> UpdateItem (BackendlessEntity item, CancellationToken cancellationToken = default(CancellationToken))
+		{
+			try {
+				var entityParameters = GetParametersFromEntityType (item.GetType ());
+				item.IsDirty = true;
+				if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.CacheOnly) {
+					if (Connectivity.IsConnected) {
+						var ignoreProperties = new  List<string> { 
+							BackendlessObject.OwnerIdKey,
+							BackendlessObject.IsDirtyKey,
+							BackendlessObject.UpdatedKey,
+							BackendlessObject.MetaKey,
+							BackendlessObject.CreatedKey,
+							BackendlessEntity.TableKey
+						};
+						if (!entityParameters.PermanentRemoval) {
+							ignoreProperties.Add (BackendlessEntity.IsDeletedKey);
+						}
+						var json = JsonConvert.SerializeObject (item, new JsonSerializerSettings {
+							ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
+						});
+						using (var rest = RestPoint) {
+							rest.Method = string.Concat (PrefixData, entityParameters.TableName);
+							var response = await rest.PutAsync (json, cancellationToken);
+							if (response.StatusCode == HttpStatusCode.OK) {
+								JsonConvert.PopulateObject (response.Json, item);
+								item.IsDirty = false;
+							} 
+						}
+					}
+				}
+				return entityParameters.BackendlessCachePolicy == BackendlessCachePolicy.ServerOnly
+				|| await entityParameters.CacheTableProvider.UpdateObject (entityParameters.TableName, JObject.FromObject (item));
+			} catch (Exception ex) {
+				return false;
+			}
+		}
+
+		public async Task<bool> DeleteItem (BackendlessEntity item, CancellationToken cancellationToken = default(CancellationToken))
+		{
+			try {
+				var entityParameters = GetParametersFromEntityType (item.GetType ());
+				var cacheTableProvider = entityParameters.CacheTableProvider;
+				item.IsDirty = true;
+				item.IsDeleted = true;
+				bool isSuccess = false;
+				if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.CacheOnly) {
+					if (Connectivity.IsConnected) {
+						using (var rest = RestPoint) {
+							rest.Method = string.Concat (PrefixData, entityParameters.TableName);
+							if (entityParameters.PermanentRemoval) {
+								var ignoreProperties = new List<string> { 
+									BackendlessObject.OwnerIdKey,
+									BackendlessObject.IsDirtyKey,
+									BackendlessObject.UpdatedKey,
+									BackendlessObject.MetaKey,
+									BackendlessObject.CreatedKey,
+									BackendlessEntity.TableKey
+								};
+								var json = JsonConvert.SerializeObject (item, new JsonSerializerSettings {
+									ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
+								});
+								var responseUpdate = await rest.PutAsync (json, cancellationToken);
+								if (responseUpdate.StatusCode == HttpStatusCode.OK) {
+									isSuccess = true;
+								}
+							} else {
+								rest.Method = string.Concat (rest.Method, "/", item.ObjectId);
+								var responseDelete = await rest.DeleteAsync (cancellationToken);
+								if (responseDelete.StatusCode == HttpStatusCode.OK) {
+									isSuccess = true;
+								}
+							}
+						}
+					}
+				}
+				if (isSuccess) {
+					item.IsDirty = false;
+					if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly) {
+						return await cacheTableProvider.DeleteObject (entityParameters.TableName, item.ObjectId);
+					}
+				} else {
+					if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly) {
+						return  await cacheTableProvider.UpdateObject (entityParameters.TableName, JObject.FromObject (item));
+					}
+				}
+				return true;
+			} catch (Exception ex) {
+				return false;
+			}
+		}
+			
+
+	
+
+		public async Task<IList<T>> ReadItems<T> (IBackendlessQuery query, CancellationToken cancellationToken = null) where T : BackendlessEntity
+		{
+			try {
+				var entityParameters = GetParametersFromEntityType (typeof(T));
+				var array = await entityParameters.CacheTableProvider.ReadObjects (entityParameters.TableName,query);
+			} catch (Exception ex) {
+				return null;
+			}
+		}
+		#endregion
 
 
-
-
-
-		EntityParameters GetParametersFromEntityType(Type type){
+		CacheEntityParameters GetParametersFromEntityType(Type type){
 
 			if (TableParameters.ContainsKey (type)) {
 				return TableParameters [type];
@@ -115,37 +216,11 @@ namespace Backendless.Core
 					tableName = type.Name;
 				}
 				if (cacheTableProvider == null) {
-					cacheTableProvider = SimpleBackendlessCacheTableProvider;
+					cacheTableProvider = DefaultCacheTableProvider;
 				}
-				if (permanentRemoval == null) {
-					permanentRemoval = false;
-				}
-				var parameters = new EntityParameters (tableName, cacheTableProvider,cachePolicy, permanentRemoval);
+				var parameters = new CacheEntityParameters (tableName, cacheTableProvider,cachePolicy, permanentRemoval);
 				TableParameters.Add (type, parameters);
 				return parameters;
-			}
-		}
-
-
-
-		#endregion
-
-
-		class EntityParameters {
-
-			public string TableName {get;private set;}
-
-			public IBackendlessCacheTableProvider CacheTableProvider {get; private set;}
-
-			public bool PermanentRemoval {get; private set;}
-
-			public BackendlessCachePolicy BackendlessCachePolicy { get; private set;}
-
-			public EntityParameters(string tableName, IBackendlessCacheTableProvider cacheTableProvider,BackendlessCachePolicy backendlessCachePolicy, bool permanentRemoval){
-				TableName = tableName;
-				CacheTableProvider = cacheTableProvider;
-				BackendlessCachePolicy = backendlessCachePolicy;
-				PermanentRemoval = permanentRemoval;
 			}
 		}
 	}

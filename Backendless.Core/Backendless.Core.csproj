@@ -37,10 +37,8 @@
     <Compile Include="Exception\BackendlessHadlerException.cs" />
     <Compile Include="Exception\BackendlessException.cs" />
     <Compile Include="Interfaces\IUserService.cs" />
-    <Compile Include="Interfaces\IConfigBackendless.cs" />
     <Compile Include="Ext\BackendlessExtension.cs" />
     <Compile Include="Implements\BackendlessBootstrap.cs" />
-    <Compile Include="Interfaces\IBackendlessLocalEndPoint.cs" />
     <Compile Include="Interfaces\IBackendlessRestEndPoint.cs" />
     <Compile Include="Simple\SimpleUserService.cs" />
     <Compile Include="Exception\BackendlessError.cs" />
@@ -48,9 +46,7 @@
     <Compile Include="Model\ResponseObjectGeneric.cs" />
     <Compile Include="Model\ResponseObject.cs" />
     <Compile Include="Converters\UnixDateTimeConverter.cs" />
-    <Compile Include="Attr\PublicAPI.cs" />
     <Compile Include="Model\BackendlessEntity.cs" />
-    <Compile Include="Interfaces\IBackendlessCacheTable.cs" />
     <Compile Include="Enums\BackendlessCachePolicy.cs" />
     <Compile Include="Interfaces\IEntityService.cs" />
     <Compile Include="Simple\SimpleEntityService.cs" />
@@ -58,13 +54,17 @@
     <Compile Include="Custom\IgnoreProprtyContractResolver.cs" />
     <Compile Include="Attr\BackendlessEntitySettings.cs" />
     <Compile Include="Interfaces\IBackendlessCacheTableProvider.cs" />
+    <Compile Include="Interfaces\IBackendlessPlatform.cs" />
+    <Compile Include="Settings\CacheEntityParameters.cs" />
+    <Compile Include="Interfaces\IBackendlessQuery.cs" />
+    <Compile Include="Simple\BackendlessQuery.cs" />
+    <Compile Include="Enums\BackendlessQueryType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>
     <Folder Include="Interfaces\" />
     <Folder Include="Model\" />
     <Folder Include="Implements\" />
-    <Folder Include="Events\" />
     <Folder Include="Base\" />
     <Folder Include="Exception\" />
     <Folder Include="Ext\" />
@@ -74,6 +74,7 @@
     <Folder Include="Converters\" />
     <Folder Include="Callback\" />
     <Folder Include="Enums\" />
+    <Folder Include="Settings\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Polly">

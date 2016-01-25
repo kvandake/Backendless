@@ -22,6 +22,7 @@ namespace Backendless.Core
 		public const string OwnerIdKey = "ownerId";
 		public const string UpdatedKey = "updated";
 		public const string CreatedKey = "created";
+		public const string IsDirtyKey = "isDirty";
 		public const string MetaKey = "__meta";
 
 		IDictionary<string,object> items;
@@ -84,6 +85,7 @@ namespace Backendless.Core
 			get {
 				return objectId;
 			}
+			//TODO Set to internal
 			set {
 				objectId = value;
 				OnPropertyChanged ();
@@ -112,7 +114,7 @@ namespace Backendless.Core
 		/// Gets or sets a value indicating whether this instance is dirty.
 		/// </summary>
 		/// <value><c>true</c> if this instance is dirty; otherwise, <c>false</c>.</value>
-		[JsonIgnore]
+		[JsonProperty(IsDirtyKey)]
 		public bool IsDirty {
 			get {
 				return isDirty;

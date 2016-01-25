@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System.Linq;
 
 namespace Backendless.Core
 {
@@ -17,11 +14,11 @@ namespace Backendless.Core
 		const string UpdateMethodPath = "/users";
 		const string RestorePassword = "/users/restorepassword";
 
-		static IBackendlessRestEndPoint RestPoint{
-			get{
-				var rest =  BackendlessBootstrap.Locator.CreatorEndPoint<IBackendlessRestEndPoint> ();
-				rest.BaseAddress = BackendlessBootstrap.RootUrl;
-				rest.Header = BackendlessBootstrap.DefaultHeader;
+		static IBackendlessRestEndPoint RestPoint {
+			get {
+				var rest = BackendlessInternal.Locator.Platform.CreatorRestPoint;
+				rest.BaseAddress = BackendlessInternal.RootUrl;
+				rest.Header = BackendlessInternal.DefaultHeader;
 				return rest;
 			}
 		}
@@ -33,8 +30,6 @@ namespace Backendless.Core
 		{
 			try {
 				using (var restPoint = RestPoint) {
-					restPoint.BaseAddress = BackendlessBootstrap.RootUrl;
-					restPoint.Header = BackendlessBootstrap.DefaultHeader;
 					restPoint.Method = RegisterMethodPath;
 					user ["password"] = @password;
 					var ignoreProperties = new [] { 
@@ -142,7 +137,7 @@ namespace Backendless.Core
 					CheckResponse (response);
 					return true;
 				}
-			}catch(Exception ex){
+			} catch(Exception ex){
 				BackendlessHadlerException.SendException (ex, errorCallback);
 				return false;
 			}
@@ -161,7 +156,6 @@ namespace Backendless.Core
 				}
 			}
 		}
-
 
 	}
 }

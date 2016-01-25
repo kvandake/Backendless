@@ -4,7 +4,8 @@ using Newtonsoft.Json;
 
 namespace Backendless.Core
 {
-	public class UnixDateTimeConverter: DateTimeConverterBase
+	// DateTimeConverterBase
+	public class UnixDateTimeConverter: IsoDateTimeConverter
 	{
 
 		/// <summary>
@@ -13,6 +14,10 @@ namespace Backendless.Core
 		/// <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter"/> to write to.</param><param name="value">The value.</param><param name="serializer">The calling serializer.</param>
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
+//			base.WriteJson (writer,value,serializer);
+//			//writer.WriteValue (((DateTime)value).ToString ("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
+//			return;
+//			writer.WriteValue (value);
 			if (value is DateTime?) {
 				var nullDate = (DateTime?)value;
 				if (nullDate.HasValue) {
@@ -28,7 +33,20 @@ namespace Backendless.Core
 				return;
 			}
 			throw new Exception ("Expected date object value.");
-
+//			if (value is DateTime?) {
+//				var nullDate = (DateTime?)value;
+//				if (nullDate.HasValue) {
+//					writer.WriteValue (nullDate.Value.ToString ("o"));
+//				} else {
+//					writer.WriteNull ();
+//				}
+//				return;
+//			}
+//			if (value is DateTime) {
+//				writer.WriteValue (((DateTime)value).ToString ("o"));
+//				return;
+//			}
+//			throw new Exception ("Expected date object value.");
 		}
 
 		/// <summary>

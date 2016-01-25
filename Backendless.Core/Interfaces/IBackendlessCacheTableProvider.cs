@@ -7,7 +7,13 @@ namespace Backendless.Core
 	public interface IBackendlessCacheTableProvider
 	{
 
-		Task<bool> SaveObject(string tableName, JToken item);
+		Task<bool> SaveObject(string tableName, JObject item);
+
+		Task<bool> UpdateObject(string tableName, JObject item);
+
+		Task<bool> DeleteObject(string tableName, string objectId);
+
+		Task<JArray> ReadObjects (string tableName, IBackendlessQuery query);
 
 	}
 }
