@@ -25,9 +25,9 @@ namespace Backendless.Core
 
 		Task<ResponseObject> DeleteJsonAsync(CancellationToken cancellationToken = default(CancellationToken));
 
-		Task<ResponseObject> PostAsync(byte[] array, CancellationToken cancellationToken = default(CancellationToken));
+		Task<ResponseObjectGeneric<string>> PostAsync(byte[] array, CancellationToken cancellationToken = default(CancellationToken));
 
-
+		Task<ResponseObjectGeneric<string>> PutAsync(byte[] array, CancellationToken cancellationToken = default(CancellationToken));
 
 		Task<ResponseObjectGeneric<Stream>> GetStreamAsync (CancellationToken cancellationToken = default(CancellationToken));
 

@@ -67,7 +67,7 @@ namespace Backendless.Core.Test
 			return await ReadResponse(response);
 		}
 
-		public async Task<ResponseObject> PostAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		public async Task<ResponseObjectGeneric<string>> PostAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			try {
 				
@@ -89,12 +89,11 @@ namespace Backendless.Core.Test
 		
 		}
 
-
-		public static Stream GenerateStreamFromString(string str)
+		public Task<ResponseObjectGeneric<string>> PutAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
-			byte[] byteArray = Encoding.UTF8.GetBytes(str);
-			return new MemoryStream(byteArray);
+			throw new NotImplementedException ();
 		}
+
 
 
 		public async Task<ResponseObject> DeleteJsonAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
