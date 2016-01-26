@@ -6,7 +6,7 @@ namespace Backendless.Core
 	public interface IFileService
 	{
 
-		Task<bool> UploadFile (string filePath, byte[] array, ErrorBackendlessCallback errorCallback = null);
+		Task<bool> UploadFile (string filePath, byte[] array, string contentType, ErrorBackendlessCallback errorCallback = null);
 
 		Task<T> DownloadFile<T>(string filePath, Func<byte[],T> converter, ErrorBackendlessCallback errorCallback = null);
 

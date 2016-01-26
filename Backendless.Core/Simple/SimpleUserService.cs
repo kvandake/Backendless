@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Backendless.Core
 {
-	public class SimpleUserService : IUserService
+	public class SimpleUserService : BackendlessServiceBase, IUserService
 	{
 
 		const string RegisterMethodPath = "/users/register";
 		const string LoginMethodPath = "/users/login";
 		const string LogoutMethodPath = "/users/logout";
 		const string UpdateMethodPath = "/users";
-		const string RestorePassword = "/users/restorepassword";
+		const string RestorePasswordPath = "/users/restorepassword";
 
-		static IBackendlessRestEndPoint RestPoint {
+		protected override IBackendlessRestEndPoint RestPoint {
 			get {
-				var rest = BackendlessInternal.DefaultRestPoint;
+				var rest = base.RestPoint;
 				rest.Header [BackendlessConstant.ContentTypeKey] = BackendlessConstant.JsonContentTypeValue;
 				return rest;
 			}
@@ -29,7 +28,7 @@ namespace Backendless.Core
 		{
 			try {
 				using (var restPoint = RestPoint) {
-					restPoint.Method = RegisterMethodPath;
+					restPoint.Method = string.Concat (RootPath, RegisterMethodPath);
 					user ["password"] = @password;
 					var ignoreProperties = new [] { 
 						BackendlessObject.ObjectIdKey,
@@ -62,7 +61,7 @@ namespace Backendless.Core
 		{
 			try {
 				using (var restPoint = RestPoint) {
-					restPoint.Method = LoginMethodPath;
+					restPoint.Method = string.Concat (RootPath, LoginMethodPath);
 					var json = JsonConvert.SerializeObject (new { login = @username, password = @password});
 					var response = await restPoint.PostJsonAsync (json);
 					CheckResponse(response);
@@ -81,8 +80,8 @@ namespace Backendless.Core
 				if (string.IsNullOrEmpty (user.UserToken))
 					throw new ArgumentException ("user.UserToken is null or empty");
 				using (var restPoint = RestPoint) {
-					restPoint.Header[BackendlessUser.UserTokenKey]=user.UserToken;
-					restPoint.Method = string.Format ("{0}/{1}",UpdateMethodPath,user.ObjectId);
+					restPoint.Header [BackendlessUser.UserTokenKey] = user.UserToken;
+					restPoint.Method = string.Concat (RootPath, UpdateMethodPath, "/", user.ObjectId);
 					var ignoreProperties = new [] { 
 						BackendlessObject.ObjectIdKey,
 						BackendlessObject.OwnerIdKey,
@@ -113,7 +112,7 @@ namespace Backendless.Core
 				if (string.IsNullOrEmpty (@username))
 					throw new ArgumentException ("@username is null or empty");
 				using (var restPoint = RestPoint) {
-					restPoint.Method = string.Format ("{0}/{1}", RestorePassword, @username);
+					restPoint.Method = string.Concat (RootPath, RestorePasswordPath, "/", @username);
 					var response = await restPoint.GetJsonAsync ();
 					CheckResponse (response);
 					return true;
@@ -131,7 +130,7 @@ namespace Backendless.Core
 					throw new ArgumentException ("user.UserToken is null or empty");
 				using (var restPoint = RestPoint) {
 					restPoint.Header[BackendlessUser.UserTokenKey]=user.UserToken;
-					restPoint.Method = LogoutMethodPath;
+					restPoint.Method = string.Concat (RootPath, LogoutMethodPath);
 					var response = await restPoint.GetJsonAsync ();
 					CheckResponse (response);
 					return true;
@@ -143,18 +142,6 @@ namespace Backendless.Core
 		}
 
 		#endregion
-
-
-		static void CheckResponse(ResponseObject response){
-			if (response.StatusCode != HttpStatusCode.OK) {
-				BackendlessError error = null;
-				if (BackendlessError.TryParse (response.Json, ref error)) {
-					throw new BackendlessException (error.ErrorCode, error.Message);
-				} else {
-					throw new BackendlessException (0, response.Json);
-				}
-			}
-		}
 
 	}
 }

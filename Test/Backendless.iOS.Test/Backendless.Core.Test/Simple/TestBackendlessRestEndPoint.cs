@@ -2,17 +2,9 @@
 using Backendless.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
-using Newtonsoft.Json.Linq;
-using System.Collections;
-using System.Web.Script.Serialization;
-using ModernHttpClient;
 using System.IO;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Globalization;
 
 namespace Backendless.Core.Test
 {
@@ -43,55 +35,53 @@ namespace Backendless.Core.Test
 		public string Method {get;set;}	
 
 
-
 		#region IRestEndPoint implementation
 
 		public async Task<ResponseObject> GetJsonAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.GetAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters),cancellationToken);
+			var response = await base.GetAsync (ToQueryParameters (Parameters),cancellationToken);
 			return await ReadResponse(response);
 		}
 
 		public async Task<ResponseObject> PutJsonAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.PutAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
+			var response = await base.PutAsync (ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
 			return await ReadResponse(response);
 		}
 
 		public async Task<ResponseObject> PostJsonAsync(string json = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.PostAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
+			var response = await base.PostAsync (ToQueryParameters (Parameters), CreateBody(json),cancellationToken);
 			return await ReadResponse(response);
 		}
 
 		public async Task<ResponseObjectGeneric<string>> PostAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
-			try {
-				
 
-				ApplyHeader ();
-				//multipart.Add (new ByteArrayContent (array));
-				var path = BaseAddress.LocalPath + ToQueryParameters (Parameters);
-				using (var content = new MultipartFormDataContent ()) {
-					StreamContent streamContent = new StreamContent (GenerateStreamFromString ("Hello world"));
-					streamContent.Headers.ContentType = new MediaTypeHeaderValue ("application/octet-stream");
-					content.Add(streamContent, "file", "post.xml");
-					var response = await base.PostAsync (path, content).ConfigureAwait (false);
-					return await ReadResponse (response);
-				}
-
-			} catch (Exception ex) {
-				return null;
+			ApplyHeader ();
+			var content = new ByteArrayContent (array);
+			if (Header.ContainsKey (BackendlessConstant.ContentTypeKey)) {
+				content.Headers.TryAddWithoutValidation (BackendlessConstant.ContentTypeKey, Header [BackendlessConstant.ContentTypeKey]);
 			}
+			var response = await base.PostAsync (ToQueryParameters (Parameters), content).ConfigureAwait (false);
+			var contentMessage = await response.Content.ReadAsStringAsync ();
+			return new ResponseObjectGeneric<string> (response.StatusCode, contentMessage);
 		
 		}
 
-		public Task<ResponseObjectGeneric<string>> PutAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+		public async Task<ResponseObjectGeneric<string>> PutAsync (byte[] array, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
-			throw new NotImplementedException ();
+			ApplyHeader ();
+			var content = new ByteArrayContent (array);
+			if (Header.ContainsKey (BackendlessConstant.ContentTypeKey)) {
+				content.Headers.TryAddWithoutValidation (BackendlessConstant.ContentTypeKey, Header [BackendlessConstant.ContentTypeKey]);
+			}
+			var response = base.PutAsync (ToQueryParameters (Parameters), content, cancellationToken).Result;
+			var contentMessage = await response.Content.ReadAsStringAsync ();
+			return new ResponseObjectGeneric<string> (response.StatusCode, contentMessage);
 		}
 
 
@@ -99,7 +89,7 @@ namespace Backendless.Core.Test
 		public async Task<ResponseObject> DeleteJsonAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var response = await base.DeleteAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters),cancellationToken);
+			var response = await DeleteAsync (ToQueryParameters (Parameters),cancellationToken);
 			return await ReadResponse(response);
 		}
 
@@ -113,7 +103,7 @@ namespace Backendless.Core.Test
 		public async Task<ResponseObjectGeneric<byte[]>> GetByteArrayAsync (System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 		{
 			ApplyHeader ();
-			var byteArray = await base.GetByteArrayAsync (BaseAddress.LocalPath + ToQueryParameters (Parameters));
+			var byteArray = await base.GetByteArrayAsync (ToQueryParameters (Parameters));
 			return new ResponseObjectGeneric<byte[]> (HttpStatusCode.OK, byteArray);
 		}
 			
@@ -145,6 +135,7 @@ namespace Backendless.Core.Test
 			var content = await response.Content.ReadAsStringAsync ();
 			return new ResponseObject (response.StatusCode, content);
 		}
+			
 
 
 		public void ApplyHeader(){
@@ -157,7 +148,7 @@ namespace Backendless.Core.Test
 
 		public string ToQueryParameters(IDictionary<string, string> dictionary)
 		{
-			string path = Method ?? string.Empty;
+			var path = Method ?? string.Empty;
 			if (dictionary == null || dictionary.Count == 0)
 				return path;
 			foreach (var item in dictionary) {

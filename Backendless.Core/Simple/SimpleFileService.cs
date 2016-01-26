@@ -4,27 +4,22 @@ using System.Net;
 
 namespace Backendless.Core
 {
-	public class SimpleFileService : IFileService
+	public class SimpleFileService : BackendlessServiceBase, IFileService
 	{
-		public const string PrefixData = "/files/binary/";
-
-		static IBackendlessRestEndPoint RestPoint {
-			get {
-				var rest = BackendlessInternal.DefaultRestPoint;
-				rest.Header [BackendlessConstant.ContentTypeKey] = BackendlessConstant.DataContentTypeValue;
-				return rest;
-			}
-		}
+		public const string PrefixUploadData = "/files/binary";
+		public const string PrefixDownloadData = "/files";
 
 		#region IFileService implementation
 
-		public async Task<bool> UploadFile (string filePath, byte[] array, ErrorBackendlessCallback errorCallback = null)
+		public async Task<bool> UploadFile (string filePath, byte[] array, string contentType, ErrorBackendlessCallback errorCallback = null)
 		{
 			try {
 				using (var rest = RestPoint) {
-					rest.Method = string.Concat (PrefixData,filePath);
-					var response = await rest.PostAsync (array);
-					return response.StatusCode == HttpStatusCode.OK;
+					rest.Method = string.Concat (RootPath, PrefixUploadData, filePath);
+					rest.Header [BackendlessConstant.ContentTypeKey] = contentType;
+					var response = await rest.PutAsync (array);
+					CheckResponse (response.StatusCode, response.Data);
+					return true;
 				}
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
@@ -52,8 +47,9 @@ namespace Backendless.Core
 		{
 			try {
 				using (var rest = RestPoint) {
-					rest.Method = filePath;
+					rest.Method = string.Concat (IsCustomBackendless ? BackendlessConstant.SuffixApi : string.Empty, BackendlessInternal.AppId, "/", VersionNum, PrefixDownloadData, filePath);
 					var response = await rest.GetByteArrayAsync ();
+					CheckResponse (response.StatusCode, string.Empty);
 					return response.StatusCode == HttpStatusCode.OK ? response.Data : null;
 				}
 			} catch (Exception ex) {

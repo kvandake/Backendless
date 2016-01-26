@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Backendless.Core
 {
@@ -13,6 +14,22 @@ namespace Backendless.Core
 
 		public const string PrefixData = "/data/";
 			
+		static IDictionary<Type,CacheEntityParameters> tableParameters;
+
+		static IDictionary<Type,CacheEntityParameters> TableParameters {
+			get {
+				return tableParameters ?? (tableParameters = new Dictionary<Type,CacheEntityParameters> ());
+			}
+		}
+
+		protected override IBackendlessRestEndPoint RestPoint {
+			get {
+				var rest = base.RestPoint;
+				rest.Header [BackendlessConstant.ContentTypeKey] = BackendlessConstant.JsonContentTypeValue;
+				return rest;
+			}
+		}
+
 		#region IPersistenceService implementation
 
 		public async Task<bool> SaveItem (BackendlessEntity item, ErrorBackendlessCallback errorCallback = null)
@@ -38,12 +55,11 @@ namespace Backendless.Core
 							ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
 						});
 						using (var rest = RestPoint) {
-							rest.Method = string.Concat (PrefixData, entityParameters.TableName);
+							rest.Method = string.Concat (RootPath, PrefixData, entityParameters.TableName);
 							var response = await rest.PostJsonAsync (json);
-							if (response.StatusCode == HttpStatusCode.OK) {
-								JsonConvert.PopulateObject (response.Json, item);
-								item.IsDirty = false;
-							}
+							CheckResponse (response);
+							JsonConvert.PopulateObject (response.Json, item);
+							item.IsDirty = false;
 						}
 					}
 				}
@@ -79,12 +95,11 @@ namespace Backendless.Core
 							ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
 						});
 						using (var rest = RestPoint) {
-							rest.Method = string.Concat (PrefixData, entityParameters.TableName);
+							rest.Method = string.Concat (RootPath, PrefixData, entityParameters.TableName);
 							var response = await rest.PutJsonAsync (json);
-							if (response.StatusCode == HttpStatusCode.OK) {
-								JsonConvert.PopulateObject (response.Json, item);
-								item.IsDirty = false;
-							} 
+							CheckResponse (response);
+							JsonConvert.PopulateObject (response.Json, item);
+							item.IsDirty = false;
 						}
 					}
 				}
@@ -107,7 +122,7 @@ namespace Backendless.Core
 				if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.CacheOnly) {
 					if (Connectivity.IsConnected) {
 						using (var rest = RestPoint) {
-							rest.Method = string.Concat (PrefixData, entityParameters.TableName);
+							rest.Method = string.Concat (RootPath, PrefixData, entityParameters.TableName);
 							if (entityParameters.PermanentRemoval) {
 								var ignoreProperties = new List<string> { 
 									BackendlessObject.OwnerIdKey,
@@ -121,15 +136,13 @@ namespace Backendless.Core
 									ContractResolver = new IgnoreProprtyContractResolver (ignoreProperties)
 								});
 								var responseUpdate = await rest.PutJsonAsync (json);
-								if (responseUpdate.StatusCode == HttpStatusCode.OK) {
-									isSuccess = true;
-								}
+								CheckResponse (responseUpdate);
+								isSuccess = true;
 							} else {
 								rest.Method = string.Concat (rest.Method, "/", item.ObjectId);
 								var responseDelete = await rest.DeleteJsonAsync ();
-								if (responseDelete.StatusCode == HttpStatusCode.OK) {
-									isSuccess = true;
-								}
+								CheckResponse (responseDelete);
+								isSuccess = true;
 							}
 						}
 					}
@@ -162,17 +175,16 @@ namespace Backendless.Core
 				if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.CacheOnly) {
 					using (var rest = RestPoint) {
 						bool isAdvanced = query.QueryType == BackendlessQueryType.Advanced;
-						rest.Method = string.Concat (PrefixData, entityParameters.TableName, isAdvanced ? BuildQuery (query) : query.Query);
+						rest.Method = string.Concat (RootPath, PrefixData, entityParameters.TableName, isAdvanced ? BuildQuery (query) : query.Query);
 						var response = await rest.GetJsonAsync ();
-						if (response.StatusCode == HttpStatusCode.OK) {
-							if (isAdvanced) {
-								var jObject = JObject.Parse (response.Json);
-								var data = jObject ["data"];
-								items = data.ToObject<List<T>> ();
-							} else {
-								items = new List<T> ();
-								items.Add (JsonConvert.DeserializeObject<T> (response.Json));
-							}
+						CheckResponse (response);
+						if (isAdvanced) {
+							var jObject = JObject.Parse (response.Json);
+							var data = jObject ["data"];
+							items = data.ToObject<List<T>> ();
+						} else {
+							items = new List<T> ();
+							items.Add (JsonConvert.DeserializeObject<T> (response.Json));
 						}
 						if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly && items != null && items.Count > 0) {
 							var result = await entityParameters.CacheTableProvider.MergeObjects<T> (entityParameters.TableName, query, JArray.FromObject (items));
@@ -213,6 +225,36 @@ namespace Backendless.Core
 			}
 			sb.Append (string.Format ("offset={0}", query.Offset));
 			return sb.ToString ();
+		}
+
+
+
+		protected CacheEntityParameters GetParametersFromEntityType(Type type){
+
+			if (TableParameters.ContainsKey (type)) {
+				return TableParameters [type];
+			} else {
+				string tableName = null; 
+				IBackendlessCacheTableProvider cacheTableProvider = null;
+				BackendlessCachePolicy cachePolicy = BackendlessCachePolicy.Standart;
+				bool permanentRemoval = false;
+				var settingsAttribute = type.GetTypeInfo ().GetCustomAttribute<BackendlessEntitySettings> ();
+				if (settingsAttribute != null) {
+					tableName = settingsAttribute.TableName;
+					cacheTableProvider = settingsAttribute.CacheTableProvider;
+					permanentRemoval = settingsAttribute.PermanentRemoval;
+					cachePolicy = settingsAttribute.CachePolicy;
+				}
+				if (string.IsNullOrEmpty (tableName)) {
+					tableName = type.Name;
+				}
+				if (cacheTableProvider == null) {
+					cacheTableProvider = DefaultCacheTableProvider;
+				}
+				var parameters = new CacheEntityParameters (tableName, cacheTableProvider,cachePolicy, permanentRemoval);
+				TableParameters.Add (type, parameters);
+				return parameters;
+			}
 		}
 
 

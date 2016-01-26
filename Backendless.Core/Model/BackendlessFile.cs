@@ -7,8 +7,8 @@ namespace Backendless.Core
 	{
 
 
-		public static async Task<bool> UploadFile(string filePath, byte[] array, ErrorBackendlessCallback errorCallback = null){
-			return await BackendlessInternal.Locator.FileService.UploadFile (filePath, array, errorCallback);
+		public static async Task<bool> UploadFile(string filePath, byte[] array, string contentType, ErrorBackendlessCallback errorCallback = null){
+			return await BackendlessInternal.Locator.FileService.UploadFile (filePath, array, contentType, errorCallback);
 		}
 
 		public static async Task<T> DownloadFile<T> (string filePath, Func<byte[], T> converter, ErrorBackendlessCallback errorCallback = null)

@@ -6,6 +6,7 @@ namespace Backendless.Core
 	{
 
 		public int ErrorCode { get; private set;}
+	
 
 		public BackendlessException (int errorCode, string message):base(message)
 		{

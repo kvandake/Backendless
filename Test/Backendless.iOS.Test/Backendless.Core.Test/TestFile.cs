@@ -19,11 +19,20 @@ namespace Backendless.Core.Test
 		[Test]
 		public async void UploadFileCase(){
 			//string temp = "Hello world";
-			string temp = "SGVsbG8gd29ybGQ=";
+			string temp = "Hello world";
 			var array = Encoding.UTF8.GetBytes (temp);
-			BackendlessFile.UploadFile ("temp/test.txt",array,error=>{
+			BackendlessFile.UploadFile ("/temp/test.txt",array,BackendlessConstant.TextContentTypeValue, error=>{
 				int f=0;
 			});
+		}
+
+		//[Test]
+		public async void DownloadFileCase(){
+			//string temp = "Hello world";
+			var file = await BackendlessFile.DownloadFile ("/temp/test.txt", error=>{
+				int f=0;
+			});
+			int h = 0;
 		}
 	}
 }

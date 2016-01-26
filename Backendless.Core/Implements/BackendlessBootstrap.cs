@@ -17,13 +17,23 @@ namespace Backendless.Core
 
 	class BackendlessInternal {
 
-
-		readonly string _apiVersion;
-		readonly string _baseUrl;
-		readonly string _applicationId;
-		readonly string _secretKey;
 		readonly IBackendlessPlatform _platform;
 
+		public static string AppId { get; private set; }
+
+		public static string SecretKey { get; private set; }
+
+		public static string VersionNum { get; private set;}
+
+		public static string RootPath { get; private set;}
+
+		public static string RootUrl { get; private set;}
+
+		public static bool IsCustomBackendless {
+			get{
+				return RootUrl != BackendlessConstant.DefaultBaseUrl;
+			}
+		}
 
 		#region Services
 
@@ -34,29 +44,6 @@ namespace Backendless.Core
 		#endregion
 
 
-		public string BaseUrl {
-			get {
-				return _baseUrl;
-			}
-		}
-
-		public string ApiVersion {
-			get {
-				return _apiVersion;
-			}
-		}
-
-		public string ApplicationId {
-			get {
-				return _applicationId;
-			}
-		}
-
-		public string SecretKey {
-			get {
-				return _secretKey;
-			}
-		}
 
 		public IBackendlessPlatform Platform {
 			get {
@@ -83,17 +70,6 @@ namespace Backendless.Core
 			}
 		}
 
-		public static string RootUrl {
-			get {
-				if (Locator == null)
-					throw new NullReferenceException ("Locator from the BackendlessBootsrap");
-				string url = string.Empty;
-				url += Locator.BaseUrl == BackendlessConstant.DefaultBaseUrl ? BackendlessConstant.DefaultBaseUrl : Locator.BaseUrl + BackendlessConstant.SuffixApi;
-				url += Locator.ApiVersion;
-				return url;	
-			}
-		}
-
 		#region Static
 
 		static volatile BackendlessInternal _locator;
@@ -109,23 +85,21 @@ namespace Backendless.Core
 		#endregion
 
 
-		public static IDictionary<string,string> DefaultHeader {
+		internal IDictionary<string,string> DefaultHeader {
 			get {
-				if (Locator == null)
-					throw new NullReferenceException ("Locator from the BackendlessBootsrap");
 				var header = new Dictionary<string,string> ();
-				header.Add (BackendlessConstant.ApplicationIdKey, Locator.ApplicationId);
-				header.Add (BackendlessConstant.SecretKeyKey, Locator.SecretKey);
+				header.Add (BackendlessConstant.ApplicationIdKey, AppId);
+				header.Add (BackendlessConstant.SecretKeyKey, SecretKey);
 				header.Add (BackendlessConstant.ApplicationTypeKey, BackendlessConstant.DefaultApplicationTypeValue);
 				return header;
 			}
 		}
 
-		internal static IBackendlessRestEndPoint DefaultRestPoint {
+		internal IBackendlessRestEndPoint DefaultRestPoint {
 			get {
-				var rest = Locator.Platform.CreatorRestPoint;
-				rest.BaseAddress = BackendlessInternal.RootUrl;
-				rest.Header = BackendlessInternal.DefaultHeader;
+				var rest = Platform.CreatorRestPoint;
+				rest.BaseAddress = RootUrl;
+				rest.Header = DefaultHeader;
 				return rest;
 			}
 		}
@@ -134,10 +108,16 @@ namespace Backendless.Core
 		internal BackendlessInternal (IBackendlessPlatform platform, string applicationId, string secretKey, string apiVersion,string baseUrl = null)
 		{
 			_platform = platform;
-			_baseUrl = string.IsNullOrEmpty (baseUrl) ? BackendlessConstant.DefaultBaseUrl : baseUrl;
-			_apiVersion = apiVersion;
-			_applicationId = applicationId;
-			_secretKey = secretKey;
+			if (string.IsNullOrEmpty (baseUrl)) {
+				RootUrl = BackendlessConstant.DefaultBaseUrl;
+				RootPath = string.Concat ("/", apiVersion);
+			} else {
+				RootUrl = baseUrl;
+				RootPath = string.Concat (BackendlessConstant.SuffixApi,apiVersion);
+			}
+			VersionNum = apiVersion;
+			AppId = applicationId;
+			SecretKey = secretKey;
 		}
 
 
