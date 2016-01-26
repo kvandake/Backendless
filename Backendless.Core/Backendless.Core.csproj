@@ -61,6 +61,7 @@
     <Compile Include="Interfaces\IFileService.cs" />
     <Compile Include="Ext\BackendlessConstant.cs" />
     <Compile Include="Model\BackendlessFile.cs" />
+    <Compile Include="Attr\BackendlessProperty.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup>

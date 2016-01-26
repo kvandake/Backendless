@@ -4,10 +4,10 @@ using System.Text;
 
 namespace Backendless.Core.Test
 {
-	[TestFixture ()]
+	//[TestFixture ()]
 	public class TestFile
 	{
-		[SetUp]
+		//[SetUp]
 		public void Setup(){
 			var platf = new TestBackendlessPlatform ();
 			platf.GlobalHandler = (s, e) => {
@@ -16,7 +16,7 @@ namespace Backendless.Core.Test
 			BackendlessBootstrap.Init (platf, TestConstant.LocalApplicationId,TestConstant.LocalSecretKey, TestConstant.LocalApiVersion, TestConstant.LocalBaseAddress);
 		}
 
-		[Test]
+		//[Test]
 		public async void UploadFileCase(){
 			//string temp = "Hello world";
 			string temp = "Hello world";

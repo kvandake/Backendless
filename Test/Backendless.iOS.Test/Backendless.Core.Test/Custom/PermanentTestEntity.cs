@@ -14,6 +14,10 @@ namespace Backendless.Core.Test
 		[JsonProperty("testCreated")]
 		[JsonConverter(typeof(UnixDateTimeConverter))]
 		public DateTime TestCreated {get;set;}
+
+
+		[JsonProperty("fieldCustom")]
+		public string FIELDCUSTOM;
 	}
 }
 

@@ -4,20 +4,22 @@ using System.Runtime.InteropServices;
 
 namespace Backendless.Core.Test
 {
-	//[TestFixture ()]
+	[TestFixture ()]
 	public class TestEntity
 	{
-		//[SetUp]
+		[SetUp]
 		public void Setup(){
 			BackendlessBootstrap.Init (new TestBackendlessPlatform (), TestConstant.LocalApplicationId,TestConstant.LocalSecretKey, TestConstant.LocalApiVersion, TestConstant.LocalBaseAddress);
 		}
 
-		//[Test]
+		[Test]
 		public async void SavePermanentEntity(){
 			var testEntity = new PermanentTestEntity ();
 			testEntity.TestName ="first name";
 			testEntity.TestCreated = DateTime.Now;
-			var result = await testEntity.SaveAsync ();
+			var result = await testEntity.SaveAsync (error=>{
+				Console.WriteLine (error.Message);
+			});
 			Console.WriteLine (result);
 		}
 

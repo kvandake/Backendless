@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Reflection;
@@ -64,7 +63,7 @@ namespace Backendless.Core
 					}
 				}
 				return entityParameters.BackendlessCachePolicy == BackendlessCachePolicy.ServerOnly
-				|| await entityParameters.CacheTableProvider.SaveObject (entityParameters.TableName, JObject.FromObject (item));
+					|| await entityParameters.CacheTableProvider.SaveObject (entityParameters.TableName,item.GetType (), JObject.FromObject (item));
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
@@ -104,7 +103,7 @@ namespace Backendless.Core
 					}
 				}
 				return entityParameters.BackendlessCachePolicy == BackendlessCachePolicy.ServerOnly
-				|| await entityParameters.CacheTableProvider.UpdateObject (entityParameters.TableName, JObject.FromObject (item));
+					|| await entityParameters.CacheTableProvider.UpdateObject (entityParameters.TableName,item.GetType (), JObject.FromObject (item));
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
@@ -150,11 +149,11 @@ namespace Backendless.Core
 				if (isSuccess) {
 					item.IsDirty = false;
 					if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly) {
-						return await cacheTableProvider.DeleteObject (entityParameters.TableName, item.ObjectId);
+						return await cacheTableProvider.DeleteObject (entityParameters.TableName,item.GetType (), item.ObjectId);
 					}
 				} else {
 					if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly) {
-						return  await cacheTableProvider.UpdateObject (entityParameters.TableName, JObject.FromObject (item));
+						return  await cacheTableProvider.UpdateObject (entityParameters.TableName,item.GetType (), JObject.FromObject (item));
 					}
 				}
 				return true;
@@ -187,14 +186,14 @@ namespace Backendless.Core
 							items.Add (JsonConvert.DeserializeObject<T> (response.Json));
 						}
 						if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly && items != null && items.Count > 0) {
-							var result = await entityParameters.CacheTableProvider.MergeObjects<T> (entityParameters.TableName, query, JArray.FromObject (items));
+							var result = await entityParameters.CacheTableProvider.MergeObjects<T> (entityParameters.TableName,typeof(T), query, JArray.FromObject (items));
 							if (result) {
 								return items;
 							}
 						}
 					}
 				}
-				var array = await entityParameters.CacheTableProvider.ReadObjects (entityParameters.TableName, query);
+				var array = await entityParameters.CacheTableProvider.ReadObjects (entityParameters.TableName,typeof(T), query);
 				return array.ToObject<List<T>> ();
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
@@ -251,7 +250,9 @@ namespace Backendless.Core
 				if (cacheTableProvider == null) {
 					cacheTableProvider = DefaultCacheTableProvider;
 				}
-				var parameters = new CacheEntityParameters (tableName, cacheTableProvider,cachePolicy, permanentRemoval);
+				//init provider for create tables
+				cacheTableProvider.InitProvider (tableName, type);
+				var parameters = new CacheEntityParameters (tableName, cacheTableProvider, cachePolicy, permanentRemoval);
 				TableParameters.Add (type, parameters);
 				return parameters;
 			}

@@ -31,7 +31,7 @@ namespace Backendless.Core
 		bool isDirty;
 		DateTime? updated;
 		DateTime created;
-		object meta;
+		string meta;
 
 		[JsonExtensionData]
 		IDictionary<string, object> Items {
@@ -163,7 +163,7 @@ namespace Backendless.Core
 		/// </summary>
 		/// <value>The meta.</value>
 		[JsonProperty(MetaKey)]
-		public object Meta {
+		public string Meta {
 			get {
 				return meta;
 			}
