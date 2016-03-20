@@ -1,22 +1,34 @@
 ﻿using Newtonsoft.Json;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System;
+using SQLite.Net.Attributes;
 
 namespace Backendless.Core
 {
 	public class BackendlessEntity : BackendlessObject
 	{
-
+		public const string IdLocalKey = "isLocal";
 		public const string TableKey = "___class";
 		public const string IsDeletedKey = "_isDeleted";
 
 		string table;
 
+		int idLocal;
+		[JsonIgnore]
+		[PrimaryKey, AutoIncrement]
+		[Column (IdLocalKey)]
+		public int IdLocal {
+			get {
+				return idLocal;
+			}
+			set {
+				idLocal = value;
+				OnPropertyChanged ();
+			}
+		}
 
 		[JsonProperty(TableKey)]
+		[Column(TableKey)]
 		public string Table {
 			get {
 				return table;
@@ -29,6 +41,7 @@ namespace Backendless.Core
 
 		bool? isDeleted;
 		[JsonProperty (IsDeletedKey)]
+		[Column(IsDeletedKey)]
 		public bool? IsDeleted {
 			get {
 				return isDeleted;

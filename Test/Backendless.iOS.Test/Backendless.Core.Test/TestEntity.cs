@@ -7,6 +7,7 @@ namespace Backendless.Core.Test
 	[TestFixture ()]
 	public class TestEntity
 	{
+
 		[SetUp]
 		public void Setup(){
 			BackendlessBootstrap.Init (new TestBackendlessPlatform (), TestConstant.LocalApplicationId,TestConstant.LocalSecretKey, TestConstant.LocalApiVersion, TestConstant.LocalBaseAddress);
@@ -20,6 +21,10 @@ namespace Backendless.Core.Test
 			var result = await testEntity.SaveAsync (error=>{
 				Console.WriteLine (error.Message);
 			});
+			TestConnectivity.EnableNetwork = false;
+			var query = new BackendlessQuery<PermanentTestEntity> ();
+			query.Where = x => x.TestName != null;
+			var l = await BackendlessEntity.ReadAsync<PermanentTestEntity> (query);
 			Console.WriteLine (result);
 		}
 

@@ -35,10 +35,15 @@ namespace Backendless.Core.Test
 
 	public class TestConnectivity : IBackendlessConnectivity{
 		#region IBackendlessConnectivity implementation
+
+		public static bool EnableNetwork = true;
+
+
+
 		public bool IsConnected {
 			get {
-				return true;
-			}
+				return EnableNetwork;
+			} 
 		}
 		#endregion
 	}

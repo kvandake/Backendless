@@ -63,7 +63,7 @@ namespace Backendless.Core
 					}
 				}
 				return entityParameters.BackendlessCachePolicy == BackendlessCachePolicy.ServerOnly
-					|| await entityParameters.CacheTableProvider.SaveObject (entityParameters.TableName,item.GetType (), JObject.FromObject (item));
+					|| await entityParameters.CacheTableProvider.SaveObject (entityParameters.TableName,item.GetType (), item);
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
@@ -103,7 +103,7 @@ namespace Backendless.Core
 					}
 				}
 				return entityParameters.BackendlessCachePolicy == BackendlessCachePolicy.ServerOnly
-					|| await entityParameters.CacheTableProvider.UpdateObject (entityParameters.TableName,item.GetType (), JObject.FromObject (item));
+					|| await entityParameters.CacheTableProvider.UpdateObject (entityParameters.TableName,item.GetType (), item);
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return false;
@@ -153,7 +153,7 @@ namespace Backendless.Core
 					}
 				} else {
 					if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly) {
-						return  await cacheTableProvider.UpdateObject (entityParameters.TableName,item.GetType (), JObject.FromObject (item));
+						return  await cacheTableProvider.UpdateObject (entityParameters.TableName,item.GetType (), item);
 					}
 				}
 				return true;
@@ -172,29 +172,30 @@ namespace Backendless.Core
 				var entityParameters = GetParametersFromEntityType (typeof(T));
 				IList<T> items = null;
 				if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.CacheOnly) {
-					using (var rest = RestPoint) {
-						bool isAdvanced = query.QueryType == BackendlessQueryType.Advanced;
-						rest.Method = string.Concat (RootPath, PrefixData, entityParameters.TableName, isAdvanced ? BuildQuery (query) : query.Query);
-						var response = await rest.GetJsonAsync ();
-						CheckResponse (response);
-						if (isAdvanced) {
-							var jObject = JObject.Parse (response.Json);
-							var data = jObject ["data"];
-							items = data.ToObject<List<T>> ();
-						} else {
-							items = new List<T> ();
-							items.Add (JsonConvert.DeserializeObject<T> (response.Json));
-						}
-						if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly && items != null && items.Count > 0) {
-							var result = await entityParameters.CacheTableProvider.MergeObjects<T> (entityParameters.TableName,typeof(T), query, JArray.FromObject (items));
-							if (result) {
-								return items;
+					if (Connectivity.IsConnected) {
+						using (var rest = RestPoint) {
+							bool isAdvanced = query.QueryType == BackendlessQueryType.Advanced;
+							rest.Method = string.Concat (RootPath, PrefixData, entityParameters.TableName, isAdvanced ? BuildQuery (query) : query.Query);
+							var response = await rest.GetJsonAsync ();
+							CheckResponse (response);
+							if (isAdvanced) {
+								var jObject = JObject.Parse (response.Json);
+								var data = jObject ["data"];
+								items = data.ToObject<List<T>> ();
+							} else {
+								items = new List<T> ();
+								items.Add (JsonConvert.DeserializeObject<T> (response.Json));
+							}
+							if (entityParameters.BackendlessCachePolicy != BackendlessCachePolicy.ServerOnly && items != null && items.Count > 0) {
+								var result = await entityParameters.CacheTableProvider.MergeObjects<T> (entityParameters.TableName, typeof(T), query, items);
+								if (result) {
+									return items;
+								}
 							}
 						}
 					}
 				}
-				var array = await entityParameters.CacheTableProvider.ReadObjects (entityParameters.TableName,typeof(T), query);
-				return array.ToObject<List<T>> ();
+				return await entityParameters.CacheTableProvider.ReadObjects (entityParameters.TableName, typeof(T), query);
 			} catch (Exception ex) {
 				BackendlessInternal.Locator.SendException (ex, errorCallback);
 				return null;

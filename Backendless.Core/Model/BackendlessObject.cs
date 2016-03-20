@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System;
 using Newtonsoft.Json;
+using SQLite.Net.Attributes;
 
 namespace Backendless.Core
 {
@@ -25,7 +26,7 @@ namespace Backendless.Core
 		public const string IsDirtyKey = "isDirty";
 		public const string MetaKey = "__meta";
 
-		IDictionary<string,object> items;
+//		IDictionary<string,object> items;
 		string ownerId;
 		string objectId;
 		bool isDirty;
@@ -33,15 +34,28 @@ namespace Backendless.Core
 		DateTime created;
 		string meta;
 
-		[JsonExtensionData]
-		IDictionary<string, object> Items {
-			get {
-				return items ?? (items = new Dictionary<string,object> ());
-			}
-			set {
-				items = value;
-			}
-		}
+
+//		[Ignore]
+//		[JsonExtensionData]
+//		IDictionary<string, object> Items {
+//			get {
+//				return items ?? (items = new Dictionary<string,object> ());
+//			}
+//			set {
+//				items = value;
+//			}
+//		}
+//
+//		[JsonIgnore]
+//		[Column("items")]
+//		public string ItemsToString {
+//			get {
+//				return JsonConvert.SerializeObject (Items);
+//			}
+//			set {
+//				Items = JsonConvert.DeserializeObject<Dictionary<string,object>> (value);
+//			}
+//		}
 
 
 
@@ -50,15 +64,15 @@ namespace Backendless.Core
 		/// </summary>
 		/// <returns><c>true</c>, if key was containsed, <c>false</c> otherwise.</returns>
 		/// <param name="key">Key.</param>
-		public bool ContainsProperty(string key){
-			return Items.ContainsKey (key);
-		}
-
-		public void RemoveProperty(string key){
-			if (ContainsProperty (key)) {
-				Items.Remove (key);
-			}
-		}
+//		public bool ContainsProperty(string key){
+//			return Items.ContainsKey (key);
+//		}
+//
+//		public void RemoveProperty(string key){
+//			if (ContainsProperty (key)) {
+//				Items.Remove (key);
+//			}
+//		}
 
 		protected BackendlessObject(){
 		}
@@ -67,20 +81,22 @@ namespace Backendless.Core
 		/// Gets or sets the <see cref="Backendless.Core.BackendlessObject"/> with the specified key.
 		/// </summary>
 		/// <param name="key">Key.</param>
-		public object this [string key] {
-			get {
-				return Items [key];
-			}
-			set {
-				Items [key] = value;
-			}
-		}
+//		[Ignore]
+//		public object this [string key] {
+//			get {
+//				return Items [key];
+//			}
+//			set {
+//				Items [key] = value;
+//			}
+//		}
 
 		/// <summary>
 		/// Gets or sets the object identifier.
 		/// </summary>
 		/// <value>The object identifier.</value>
 		[JsonProperty(ObjectIdKey)]
+		[Column(ObjectIdKey)]
 		public string ObjectId {
 			get {
 				return objectId;
@@ -97,6 +113,7 @@ namespace Backendless.Core
 		/// </summary>
 		/// <value>The owner identifier.</value>
 		[JsonProperty(OwnerIdKey)]
+		[Column(OwnerIdKey)]
 		public string OwnerId {
 			get {
 				return ownerId;
@@ -115,6 +132,7 @@ namespace Backendless.Core
 		/// </summary>
 		/// <value><c>true</c> if this instance is dirty; otherwise, <c>false</c>.</value>
 		[JsonProperty(IsDirtyKey)]
+		[Column(IsDirtyKey)]
 		public bool IsDirty {
 			get {
 				return isDirty;
@@ -131,6 +149,7 @@ namespace Backendless.Core
 		/// <value>The updated.</value>
 		[JsonProperty(UpdatedKey)]
 		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[Column(UpdatedKey)]
 		public DateTime? Updated {
 			get {
 				return updated;
@@ -147,6 +166,7 @@ namespace Backendless.Core
 		/// <value>The created.</value>
 		[JsonProperty(CreatedKey)]
 		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[Column(CreatedKey)]
 		public DateTime Created {
 			get {
 				return created;
@@ -163,6 +183,7 @@ namespace Backendless.Core
 		/// </summary>
 		/// <value>The meta.</value>
 		[JsonProperty(MetaKey)]
+		[Column(MetaKey)]
 		public string Meta {
 			get {
 				return meta;
@@ -177,9 +198,9 @@ namespace Backendless.Core
 		#endregion
 
 
-		public IEnumerator<KeyValuePair<string,object>> GetEnumerator(){
-			return Items.GetEnumerator ();
-		}
+//		public IEnumerator<KeyValuePair<string,object>> GetEnumerator(){
+//			return Items.GetEnumerator ();
+//		}
 			
 		protected virtual void OnPropertyChanged ([CallerMemberName] string propertyName = null)
 		{

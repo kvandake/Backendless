@@ -29,7 +29,8 @@ namespace Backendless.Core
 			try {
 				using (var restPoint = RestPoint) {
 					restPoint.Method = string.Concat (RootPath, RegisterMethodPath);
-					user ["password"] = @password;
+					//TODO add password
+			//		user ["password"] = @password;
 					var ignoreProperties = new [] { 
 						BackendlessObject.ObjectIdKey,
 						BackendlessObject.OwnerIdKey,
@@ -45,7 +46,7 @@ namespace Backendless.Core
 					});
 					var response = await restPoint.PostJsonAsync (json);
 					CheckResponse(response);
-					user.RemoveProperty ("password");
+				//	user.RemoveProperty ("password");
 					JsonConvert.PopulateObject (response.Json, user);
 					return true;
 				}
